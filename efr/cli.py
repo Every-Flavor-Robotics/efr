@@ -23,15 +23,37 @@ def cli(ctx):
     """
     if not ctx.invoked_subcommand:
         version = get_version()
-        click.echo("Every Flavor Robotics command line tool")
-        click.secho(f"Version: {version}", fg="green")
 
-        click.echo("Installed plugins:")
-        for entry_point in pkg_resources.iter_entry_points("efr.plugins"):
-            click.echo(f"  - {entry_point.name}")
+        # Title line
+        click.secho(
+            "\n🚀 | Every Flavor Robotics Command Line Tool | 🚀  ",
+            fg="cyan",
+            bold=True,
+        )
 
-        click.echo("For details on creating and installing plugins, see: ")
-        click.echo("\nUsage: efr [COMMAND] [ARGS]...")
+        # Version line
+        click.secho(f"Version: {version}\n", fg="green", bold=True)
+
+        # Installed plugins
+        click.secho("Installed plugins:", fg="bright_magenta", bold=True)
+        plugin_list = list(pkg_resources.iter_entry_points("efr.plugins"))
+        if plugin_list:
+            for entry_point in plugin_list:
+                click.echo(f"  • {entry_point.name}")
+        else:
+            click.secho("  (No plugins found)", fg="yellow")
+
+        # Documentation link
+        click.echo(
+            "\nFor details on creating and installing plugins, see:\n"
+            "  https://github.com/Every-Flavor-Robotics/efr/blob/main/plugin_docs.md"
+        )
+
+        # Usage help
+        click.secho("\nUsage:", bold=True)
+        click.echo("  efr [COMMAND] [ARGS]...")
+
+        # Extra help
         click.echo("Run 'efr --help' for more info.")
         ctx.exit(0)
 
@@ -39,5 +61,4 @@ def cli(ctx):
 # Auto-discover plugins: each plugin is a Click command or group
 for entry_point in pkg_resources.iter_entry_points("efr.plugins"):
     plugin = entry_point.load()
-    cli.add_command(plugin)
     cli.add_command(plugin)
