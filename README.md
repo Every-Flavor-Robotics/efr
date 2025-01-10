@@ -1,12 +1,8 @@
 
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/PLACEHOLDER/efr-logo.png" alt="efr Logo" width="200"/>
-</p>
-
 <h1 align="center">🚀 | Every Flavor Robotics CLI Tool (efr) | 🚀</h1>
 
 <p align="center">
-  Your one-stop command line interface for projects, plugins, and productivity.
+  Your one-stop command line interface for all of the essential EFR goodies
 </p>
 
 ---
@@ -15,6 +11,7 @@
 - [Table of Contents](#table-of-contents)
 - [Project Objectives](#project-objectives)
 - [Installation](#installation)
+  - [Install in editable mode:](#install-in-editable-mode)
 - [Usage](#usage)
 - [Creating Plugins](#creating-plugins)
 - [Contributing](#contributing)
@@ -22,28 +19,28 @@
 ---
 
 ## Project Objectives
-1. **Centralize Tools**: Offer a single CLI entry point for various teams—whether you’re working on video editing, board design, or something else.
+1. **Centralize Tools**: Offer a single CLI entry point for various teams, whether you're working on software dev, video editing, pcb design, or anything else
 2. **Extensible Architecture**: Support a robust plugin system, allowing each team to add new commands without touching the core codebase.
 3. **Ease of Use**: Offer straightforward commands and a user-friendly help system.
-4. **Scalability**: Ensure that as your organization grows and new tools are added, **efr** can seamlessly keep up.
 
 ---
 
 ## Installation
-Below is a quick, one-line terminal command to clone this repository and install **efr** in [editable mode](https://pip.pypa.io/en/stable/cli/pip_install/#cmdoption-e). This will automatically clean up if it encounters errors, ensuring a smooth install process:
+Below is a quick, one-line terminal command to clone this repository and install **efr**:
 
 ```bash
-git clone https://github.com/Every-Flavor-Robotics/efr.git && cd efr && pip install --upgrade pip && pip install -e . || (echo "Install failed, cleaning up..." && cd .. && rm -rf efr)
+curl -s https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/main/install.sh | bash
 ```
 
-Here’s what this does:
+The install script does the following:
 1. **Clone** the repository from GitHub.
 2. **Move** into the `efr` folder.
 3. **Upgrade pip** to the latest version (best practice).
 4. **Install** `efr` in editable mode, pulling in any required dependencies.
 5. **If** anything fails, it prints an error message and **removes** the cloned folder to leave a clean environment.
 
-Alternatively, you can just manually clone and install:
+
+### Install in editable mode:
 ```bash
 git clone https://github.com/Every-Flavor-Robotics/efr.git
 cd efr
