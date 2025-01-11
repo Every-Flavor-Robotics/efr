@@ -36,7 +36,7 @@ def cli(ctx):
 
         # Description
         click.secho(
-            "Plugins are the heart of efr, and they provide the functionality for various tasks.",
+            "Plugins are the heart of efr: they provide the functionality for all of the various tasks.",
             fg="bright_magenta"
         )
 
