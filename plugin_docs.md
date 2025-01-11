@@ -4,7 +4,7 @@ This guide shows you how to build and register a new plugin for the **efr** comm
 
 ---
 
-## 1. Overview
+## Overview
 
 - **efr** is a CLI built with [Click](https://click.palletsprojects.com) and uses **entry points** for a plugin system.
 - Each plugin is simply a Python package that defines:
@@ -15,7 +15,7 @@ Once installed (`pip install ...`), your plugin’s subcommand(s) will appear wh
 
 ---
 
-## 2. Project Structure
+## Project Structure
 
 Assume you want to create a plugin named **`efr-awesome`**. A simple layout might look like this:
 
@@ -45,7 +45,7 @@ def awesome_cmd():
 
 ---
 
-## 3. Defining the Entry Point
+## Defining the Entry Point
 
 In your **`setup.py`**, declare how this package hooks into `efr.plugins`. For example:
 
@@ -77,7 +77,7 @@ setup(
 
 ---
 
-## 4. Installing and Testing
+## Installing and Testing
 
 1. **Install the Plugin Locally** (in editable/development mode):
    ```bash
@@ -100,21 +100,9 @@ setup(
    ```
 
 ---
+## Standards for **efr** Plugins
+* Paths should be handled with `pathlib.Path` objects.
+* Use `click` for command-line interfaces.
+* Use `questionary` for interactive prompts.
+* Include a `README.md` with a table of contents and installation instructions.
 
-## 5. Versioning and Distribution
-
-- **Version your plugin**: Update the `version` in `setup.py` or `pyproject.toml` to release new features or fixes.
-- **Distribute**:
-  - Publish to an internal PyPI (for company-internal distribution) or to PyPI.org if it’s open source.
-  - Once installed in any environment that also has `efr` installed, your plugin is immediately available.
-
----
-
-## 6. Summary
-
-1. **Create a Click command** in a Python package.
-2. **Register** it under the `efr.plugins` entry point.
-3. **Install** the plugin so that `efr` can discover it.
-
-That’s it—your new subcommand is now part of the **efr** ecosystem. Enjoy building and sharing tools across your teams!
-```
