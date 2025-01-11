@@ -2,6 +2,14 @@ import os
 from pathlib import Path
 import click
 import subprocess
+import requests
+
+
+REGISTRY_URL = (
+    "https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/"
+    "refs/heads/main/efr-plugins/efr-plugins/plugins/plugin_registry.json"
+)
+
 
 def create_new_plugin_project(path: Path, name: str):
     """
@@ -272,3 +280,16 @@ def get_description(plugin_dir: Path) -> str:
             break
 
     return description
+
+
+def retrieve_registry():
+    """
+    Retrieve the plugin registry from the GitHub repository.
+    """
+    try:
+        response = requests.get(REGISTRY_URL)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        click.secho(f"Error fetching registry: {e}", fg="red")
+        return None

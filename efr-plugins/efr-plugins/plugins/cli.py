@@ -3,15 +3,8 @@ import os
 import glob
 import pathlib
 from pathlib import Path
-from plugins import plugin_template_utils
-import requests
+from plugins import plugin_utils
 import pkg_resources
-
-REGISTRY_URL = (
-    "https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/"
-    "refs/heads/main/efr-plugins/efr-plugins/plugins/plugin_registry.json"
-)
-
 
 
 @click.group(name="plugins")
@@ -39,15 +32,15 @@ def init_new_plugin(name: str, path: Path):
     description = click.prompt("Enter a short description for your plugin (e.g. 'A plugin for managing awesome things.')")
 
     try:
-        plugin_dir = plugin_template_utils.create_new_plugin_project(path, name)
+        plugin_dir = plugin_utils.create_new_plugin_project(path, name)
     except FileExistsError:
         click.secho(f"Error: Directory 'efr-{name}' already exists in '{path}'.", fg="red")
         return
 
-    plugin_template_utils.init_readme(plugin_dir, name, description)
-    plugin_template_utils.init_setup_py(plugin_dir, name, description)
-    plugin_template_utils.init_cli_py(plugin_dir, name, description)
-    plugin_template_utils.init_install_sh(plugin_dir, name)
+    plugin_utils.init_readme(plugin_dir, name, description)
+    plugin_utils.init_setup_py(plugin_dir, name, description)
+    plugin_utils.init_cli_py(plugin_dir, name, description)
+    plugin_utils.init_install_sh(plugin_dir, name)
 
     # Print a checklist for what the user should do next
     click.secho(f"\nPlugin '{name}' initialized at: {plugin_dir.resolve()}\n", fg="green")
@@ -57,7 +50,7 @@ def init_new_plugin(name: str, path: Path):
     click.secho(f"\t3. Update README.md with details", fg="cyan")
     click.secho(f"\t4. Add the plugin to the registry using the `get_registry_info` command", fg="cyan")
 
-    print(plugin_template_utils.get_github_raw_url(plugin_dir, Path("install.sh")))
+    print(plugin_utils.get_github_raw_url(plugin_dir, Path("install.sh")))
 
 
 @plugins.command(name = "get_registry_info")
@@ -71,8 +64,8 @@ def get_registry_info(plugin_dir: Path):
 
 
     plugin_name = plugin_dir.name.replace("efr-", "")
-    plugin_description = plugin_template_utils.get_description(plugin_dir)
-    plugin_install_url = plugin_template_utils.get_github_raw_url(plugin_dir, Path("install.sh"))
+    plugin_description = plugin_utils.get_description(plugin_dir)
+    plugin_install_url = plugin_utils.get_github_raw_url(plugin_dir, Path("install.sh"))
 
     print(plugin_description)
 
@@ -85,6 +78,8 @@ def get_registry_info(plugin_dir: Path):
 
 
 
+
+
 @plugins.command(name="list")
 def list_plugins():
     """
@@ -92,15 +87,7 @@ def list_plugins():
     """
 
     click.secho("Fetching plugin registry...", fg="cyan")
-    try:
-        response = requests.get(REGISTRY_URL)
-        response.raise_for_status()
-        plugin_registry = response.json()  # e.g., { "plugins": { "description": "...", "install_url": "..." } }
-    except requests.RequestException as e:
-        click.secho(f"Error fetching registry: {e}", fg="red")
-        return
-
-    print(plugin_registry)
+    plugin_registry = plugin_utils.retrieve_registry()
 
     # The registry might have multiple plugins keyed by name. Example structure:
     #
