@@ -7,6 +7,7 @@ setup(
     author="Swapnil Pande",
     author_email="support@everyflavorrobotics.com",
     description="Utilites for managing plugins for `efr` CLI",
+    include_package_data=True,
     packages=find_packages(),
     install_requires=[
         "Click>=7.0",  # Ensure Click is installed
