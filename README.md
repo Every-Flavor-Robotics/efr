@@ -18,7 +18,9 @@
 ---
 
 ## Project Objectives
-Think of `efr` as a toolbelt for Every Flavor's various software tools: it is a central place to find all of the utilities we've built up to speed up our workflow and reduce our mistakes. The project has three main objectives:
+Think of `efr` as a toolbelt for Every Flavor's various software tools: it is a central place to find all of the utilities we've built up to speed up our workflow and reduce our mistakes.
+
+The project has three main objectives:
 
 
 1. **Centralize Tools**: Offer a single CLI entry point for various teams, whether you're working on software dev, video editing, pcb design, or anything else.
