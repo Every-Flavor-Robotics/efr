@@ -7,6 +7,7 @@ from plugins import plugin_utils
 import subprocess
 import pkg_resources
 import requests
+import tempfile
 
 
 @click.group(
