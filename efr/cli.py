@@ -34,6 +34,12 @@ def cli(ctx):
         # Version line
         click.secho(f"Version: {version}\n", fg="green", bold=True)
 
+        # Description
+        click.secho(
+            "Plugins are the heart of efr, and they provide the functionality for various tasks.",
+            fg="bright_magenta"
+        )
+
         # Installed plugins
         click.secho("Installed plugins:", fg="bright_magenta", bold=True)
         plugin_list = list(pkg_resources.iter_entry_points("efr.plugins"))
@@ -43,10 +49,19 @@ def cli(ctx):
         else:
             click.secho("  (No plugins found)", fg="yellow")
 
+        click.secho(
+            "\nTo see what each plugin does, run 'efr <plugin_name>'",
+            fg="bright_magenta",
+        )
+
+        click.secho(
+            "To see a list of installable plugins, run 'efr plugins list'",
+            fg="bright_magenta")
+
         # Documentation link
         click.echo(
-            "\nFor details on creating and installing plugins, see:\n"
-            "  https://github.com/Every-Flavor-Robotics/efr/blob/main/plugin_docs.md"
+            "\nFor more documentation, check out:\n"
+            "  https://github.com/Every-Flavor-Robotics/efr/blob/main/README.md"
         )
 
         # Usage help

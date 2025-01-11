@@ -39,6 +39,12 @@ def plugins(ctx):
         click.secho("  get_registry_info    Get registry info for a plugin project", fg="yellow")
 
         click.echo()
+        # Documentation link
+        click.echo(
+            "\nFor more details on creating and installing plugins, see:\n"
+            "  https://github.com/Every-Flavor-Robotics/efr/blob/main/plugin_docs.md"
+        )
+
         # Exit so Click doesn't complain about missing subcommands
         ctx.exit(0)
 
