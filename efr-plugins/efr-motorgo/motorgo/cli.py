@@ -22,7 +22,20 @@ def boards():
     pass
 
 
-@boards.command()
+@boards.command(
+    name="install",
+    help="""
+Installs custom board definition for PlatformIO.
+
+To get started, clone the two repositories below to your local machine:\n
+\t- Arduino-ESP32 Framework: https://github.com/Every-Flavor-Robotics/arduino-esp32.git\n
+\t- Espressif32 Platform: https://github.com/Every-Flavor-Robotics/platform-espressif32.git
+
+Pass those paths to the install command utility as shown below.\n
+If you're not sure which of the platform and framework to install to, you can use the --all flag to install to all available platforms and frameworks. This is generall safe!
+
+"""
+)
 @click.option(
     "-a",
     "--all",
@@ -58,3 +71,9 @@ def install(all, force, board_name, framework_path, platform_path):
     """
 
     board_install.install(all, force, board_name, framework_path, platform_path)
+
+@boards.command(
+    name="uninstall",
+    help="")
+def uninstall():
+    pass
