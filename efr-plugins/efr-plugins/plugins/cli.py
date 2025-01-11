@@ -6,16 +6,47 @@ from pathlib import Path
 from plugins import plugin_utils
 
 
-@click.group(name="plugins")
-def plugins():
+@click.group(
+    name="plugins",
+    invoke_without_command=True,
+    help="""
+Utilities for installing plugins for the `efr` CLI and for developing new plugins.\n
+
+  list                 List available plugins from the plugin registry.
+  install <plugin>     Install a plugin by name.
+
+For development:\n
+  init                 Initialize a new plugin project, filling in boilerplate.
+  get_registry_info    Get registry info for a plugin project to paste into the registry.
+""",
+)
+@click.pass_context
+def plugins(ctx):
     """
     A 'plugins' command group for efr.
     """
-    pass
+    if ctx.invoked_subcommand is None:
+        click.secho("🔌  efr plugins  🔌", fg="magenta", bold=True)
+        click.echo()
+        click.secho("List of commands:", fg="cyan", bold=True)
+        click.secho("  list                 List available plugins from the plugin registry", fg="yellow")
+        click.secho("  install <plugin>     Install a plugin by name", fg="yellow")
+
+        click.echo()
+        click.secho("For development:", fg="cyan", bold=True)
+
+        click.secho("  init                 Initialize a new plugin project. This sets up the plugin project fully", fg="yellow")
+        click.secho("  get_registry_info    Get registry info for a plugin project", fg="yellow")
+
+        click.echo()
+        # Exit so Click doesn't complain about missing subcommands
+        ctx.exit(0)
 
 
 
-@plugins.command(name = "init")
+
+@plugins.command(name = "init",
+help="Initialize a new plugin project, filling in boilerplate.")
 @click.argument("name")
 @click.option("--path", default=os.getcwd(), help="Path to create the new plugin project")
 def init_new_plugin(name: str, path: Path):
@@ -52,7 +83,8 @@ def init_new_plugin(name: str, path: Path):
     print(plugin_utils.get_github_raw_url(plugin_dir, Path("install.sh")))
 
 
-@plugins.command(name = "get_registry_info")
+@plugins.command(name = "get_registry_info",
+help="Get registry info for a new plugin to add it to the plugin registry.")
 @click.argument("plugin_dir", type=click.Path(exists=True))
 def get_registry_info(plugin_dir: Path):
     plugin_dir = Path(plugin_dir)
@@ -201,3 +233,28 @@ def install_plugin(plugin_name, upgrade):
         # 6) Cleanup: remove the temporary script
         if os.path.exists(script_path):
             os.remove(script_path)
+
+
+@plugins.command(name="uninstall")
+@click.argument("plugin_name")
+def uninstall_plugin(plugin_name):
+    """
+    Uninstall a plugin by name, using pip.
+    """
+
+    if not plugin_utils.is_plugin_installed(plugin_name):
+        click.secho(f"Plugin '{plugin_name}' is not installed.", fg="yellow")
+        return
+
+    # By convention, the package is 'efr-<plugin_name>'
+    package_name = f"efr-{plugin_name}"
+
+    click.secho(f"Uninstalling '{package_name}'...", fg="cyan")
+    try:
+        subprocess.run(
+            ["pip", "uninstall", "-y", package_name],  # -y to skip confirmation
+            check=True
+        )
+        click.secho(f"'{plugin_name}' successfully uninstalled!", fg="green")
+    except subprocess.CalledProcessError as e:
+        click.secho(f"Failed to uninstall '{plugin_name}': {e}", fg="red")
