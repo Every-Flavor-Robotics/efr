@@ -20,7 +20,7 @@ cd efr-plugins/efr-plugins
 pip install .
 
 # 4) Leave the repo directory and clean it up
-cd ..
+cd ../../../
 rm -rf efr
 
 # 5) Remove this installer script
