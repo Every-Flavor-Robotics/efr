@@ -95,10 +95,12 @@ def list_plugins():
     try:
         response = requests.get(REGISTRY_URL)
         response.raise_for_status()
-        registry = response.json()  # e.g., { "plugins": { "description": "...", "install_url": "..." } }
+        plugin_registry = response.json()  # e.g., { "plugins": { "description": "...", "install_url": "..." } }
     except requests.RequestException as e:
         click.secho(f"Error fetching registry: {e}", fg="red")
         return
+
+    print(plugin_registry)
 
     # The registry might have multiple plugins keyed by name. Example structure:
     #
@@ -113,35 +115,9 @@ def list_plugins():
     #    }
     # }
     #
-    # But your example shows only a top-level "plugins" key. Adjust as needed.
-    #
-    # For the example:
-    # {
-    #   "plugins": {
-    #       "description": "...",
-    #       "install_url": "..."
-    #   }
-    # }
     # We'll assume each top-level key is a plugin name. The user’s example is somewhat ambiguous,
     # so adapt to your real JSON structure.
 
-    # If your real structure has a single key "plugins" for one plugin, do something like:
-    #   plugin_data = registry["plugins"]
-    #   plugin_name = "plugins"
-    #   # Then wrap that in a dict so it matches { plugin_name: plugin_data }
-    #
-    # If your real structure is multiple named plugins, you can iterate them directly.
-    # Example below handles both cases gracefully.
-
-    if "plugins" in registry and isinstance(registry["plugins"], dict):
-        # The example shows only one plugin named "plugins"
-        # We'll treat that as { "plugins": {...} } => one plugin named "plugins"
-        # but let's unify it into a dictionary of { "plugins": { ... } }
-        # so we can iterate the same way if you had multiple.
-        plugin_registry = {"plugins": registry["plugins"]}
-    else:
-        # Otherwise, we assume the entire JSON is a map of plugin_name -> plugin_info
-        plugin_registry = registry
 
     # Gather installed package names (lowercased) for easy membership checking
     installed_packages = {dist.project_name.lower() for dist in pkg_resources.working_set}
