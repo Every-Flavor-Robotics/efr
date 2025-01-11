@@ -51,7 +51,33 @@ def init_new_plugin(name: str, path: Path):
     click.secho(f"\t1. Add info to setup.py", fg="cyan")
     click.secho(f"\t2. Implement your plugin in cli.py", fg="cyan")
     click.secho(f"\t3. Update README.md with details", fg="cyan")
+    click.secho(f"\t4. Add the plugin to the registry using the `get_registry_info` command", fg="cyan")
 
+    print(plugin_template_utils.get_github_raw_url(plugin_dir, Path("install.sh")))
+
+
+@plugins.command(name = "get_registry_info")
+@click.argument("plugin_dir", type=click.Path(exists=True))
+def get_registry_info(plugin_dir: Path):
+    plugin_dir = Path(plugin_dir)
+
+    if not plugin_dir.exists():
+        click.secho(f"Error: Directory '{plugin_dir}' does not exist.", fg="red")
+        return
+
+
+    plugin_name = plugin_dir.name.replace("efr-", "")
+    plugin_description = plugin_template_utils.get_description(plugin_dir)
+    plugin_install_url = plugin_template_utils.get_github_raw_url(plugin_dir, Path("install.sh"))
+
+    print(plugin_description)
+
+    # Provide JSON output for the registry
+    click.secho(f"Add the following to the registry in 'efr-plugins':", fg="green")
+    click.secho(f"\"{plugin_name}\": {{", fg="cyan")
+    click.secho(f"\t\"description\": \"{plugin_description}\",", fg="cyan")
+    click.secho(f"\t\"install_url\": \"{plugin_install_url}\"", fg="cyan")
+    click.secho(f"}},", fg="cyan")
 
 
 

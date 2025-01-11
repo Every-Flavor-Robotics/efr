@@ -190,7 +190,7 @@ def _get_git_details(plugin_dir: Path) -> dict:
 
     # If remote URL is ssh, convert it to https
     if remote_url and remote_url.startswith("git@"):
-        remote_url = remote_url.replace("git@", "https://").replace(":", "/")
+        remote_url = remote_url.replace(":", "/").replace("git@", "https://")
 
     return {
         "relative_path": relative_path,
@@ -212,3 +212,63 @@ def init_install_sh(plugin_dir: Path, name: str):
     git_details = _get_git_details(plugin_dir)
 
     _init_file(template_path, target_path, {"plugin_repo" : git_details["remote_url"], "plugin_dir" : git_details["relative_path"], "name": name})
+
+
+def get_github_raw_url(plugin_dir: Path, file_path: Path) -> str:
+    """
+    Get the raw GitHub URL for a file in the plugin directory.
+
+    Args:
+        plugin_dir (Path): The path to the plugin directory.
+        file_path (Path): The path to the file in the plugin directory.
+
+    Returns:
+        str: The raw GitHub URL for the file.
+    """
+
+    git_details = _get_git_details(plugin_dir)
+
+    if not git_details["remote_url"]:
+        raise ValueError(f"Remote URL not found for plugin directory: {plugin_dir}")
+
+    print (git_details["remote_url"])
+    # Construct the raw URL
+    raw_url = git_details["remote_url"].replace(".git", "").replace("github.com", "raw.githubusercontent.com")
+
+    # Append the branch name
+    raw_url += "/refs/heads/main"
+
+    # Append the relative path of the file
+    raw_url += f"/{git_details['relative_path']}/{file_path.name}"
+
+    return raw_url
+
+def get_description(plugin_dir: Path) -> str:
+    """
+    Get the description of the plugin from the setup.py file.
+
+    Args:
+        plugin_dir (Path): The path to the plugin directory.
+
+    Returns:
+        str: The description of the plugin.
+    """
+
+    setup_file = plugin_dir / "setup.py"
+
+    if not setup_file.exists():
+        raise FileNotFoundError(f"setup.py not found in plugin directory: {plugin_dir}")
+
+    # Read the setup.py file
+    setup_content = setup_file.read_text(encoding="utf-8")
+
+    # Find the description
+    description = ""
+    for line in setup_content.split("\n"):
+        if "description=" in line:
+            description = line.split("=", 1)[1].strip().strip("\"")
+            # Remove any trailing comma and quote
+            description = description.rstrip("\",")
+            break
+
+    return description
