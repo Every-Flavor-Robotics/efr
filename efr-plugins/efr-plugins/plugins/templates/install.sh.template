@@ -5,7 +5,7 @@ PLUGIN_REPO="{plugin_repo}"
 PLUGIN_SUBDIR="{plugin_dir}"  # the subfolder with setup.py
 TMP_DIR="$(mktemp -d)"
 
-echo "==> Installing efr-foobar plugin from ${{PLUGIN_REPO}}/${{PLUGIN_SUBDIR}}"
+echo "==> Installing efr-{name} plugin from ${{PLUGIN_REPO}}/${{PLUGIN_SUBDIR}}"
 
 # 1) Create and enter a temporary directory
 cd "${{TMP_DIR}}"
@@ -34,7 +34,7 @@ cd "${{PLUGIN_SUBDIR}}"
 pip install --upgrade pip
 pip install .
 
-echo "==> Plugin efr-foobar successfully installed!"
+echo "==> Plugin efr-{name} successfully installed!"
 
 # 9) Cleanup: remove the temporary directory
 cd
