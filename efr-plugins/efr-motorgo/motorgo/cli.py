@@ -6,12 +6,41 @@ from pathlib import Path
 from motorgo import board_install
 
 
-@click.group(name="motorgo")
-def motorgo():
+@click.group(
+    name="motorgo",
+    invoke_without_command=True,
+    help="""
+Tools for managing MotorGo hardware and software development.
+
+Software development tools:\n
+    boards       Tools for interacting with custom board definitions
+""",
+)
+@click.pass_context
+def motorgo(ctx):
     """
     A 'motorgo' command group for efr.
     """
-    pass
+    if ctx.invoked_subcommand is None:
+        click.secho("⚙️  efr motorgo  ⚙️", fg="green", bold=True)
+        click.echo()
+
+        click.secho("The motorgo plugin provides tools for managing MotorGo hardware and software development.\n    ", fg="cyan")
+
+        click.secho("List of software dev commands:", fg="cyan", bold=True)
+        click.secho("  boards               Tools for interacting with custom board definitions", fg="yellow")
+
+        click.echo()
+        click.secho("Examples:", fg="cyan", bold=True)
+        click.echo("  efr motorgo boards install --help")
+        click.echo("  efr motorgo boards list")
+
+        click.echo()
+        click.echo("Use 'Invoke any subcommand with --help for more details on usage.\n")
+        click.secho("Happy MotorGo hacking!", fg="magenta", bold=True)
+
+        # Exit so Click doesn't complain about missing subcommands
+        ctx.exit(0)
 
 
 @motorgo.group(invoke_without_command=True)
@@ -25,7 +54,7 @@ def boards(ctx):
         click.secho("Installs custom board definition for PlatformIO.\n", fg="green", bold=True)
 
         click.secho(
-            "To get started, clone the two repositories below to your local machine:",
+            "To get started, retrieve the board definitions by cloning the two repositories below to your local machine:",
             fg="cyan",
         )
         click.echo("\t• Arduino-ESP32 Framework: https://github.com/Every-Flavor-Robotics/arduino-esp32.git")
@@ -38,7 +67,7 @@ def boards(ctx):
 
         )
         click.secho(
-            "If you're not sure which of the platform and framework to install to, "
+            "If you're not sure which versions of the platform and framework to install to, "
             "you can use the --all flag to install to all available platforms and frameworks. "
             "This is generally safe! \U0001F680\n",  # Rocket emoji
             fg="yellow",
