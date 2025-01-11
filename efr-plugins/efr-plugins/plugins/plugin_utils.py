@@ -3,6 +3,7 @@ from pathlib import Path
 import click
 import subprocess
 import requests
+import pkg_resources
 
 
 REGISTRY_URL = (
@@ -293,3 +294,12 @@ def retrieve_registry():
     except requests.RequestException as e:
         click.secho(f"Error fetching registry: {e}", fg="red")
         return None
+
+
+def is_plugin_installed(plugin_name: str) -> bool:
+    """
+    Checks if the plugin (assuming PyPI package named 'efr-{plugin_name}') is installed.
+    """
+    installed_packages = {dist.project_name.lower() for dist in pkg_resources.working_set}
+    candidate_name = f"efr-{plugin_name}".lower()
+    return candidate_name in installed_packages

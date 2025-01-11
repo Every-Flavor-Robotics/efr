@@ -4,7 +4,6 @@ import glob
 import pathlib
 from pathlib import Path
 from plugins import plugin_utils
-import pkg_resources
 
 
 @click.group(name="plugins")
@@ -89,8 +88,7 @@ def list_plugins():
     click.secho("Fetching plugin registry...", fg="cyan")
     plugin_registry = plugin_utils.retrieve_registry()
 
-    # The registry might have multiple plugins keyed by name. Example structure:
-    #
+    # Registry structure is assumed to be a dictionary like:
     # {
     #    "plugin_a": {
     #       "description": "...",
@@ -104,7 +102,6 @@ def list_plugins():
     #
     # We'll assume each top-level key is a plugin name. The user’s example is somewhat ambiguous,
     # so adapt to your real JSON structure.
-
 
     # Gather installed package names (lowercased) for easy membership checking
     installed_packages = {dist.project_name.lower() for dist in pkg_resources.working_set}
@@ -144,4 +141,63 @@ def list_plugins():
     click.echo()
 
 
+@plugins.command(name="install")
+@click.argument("plugin_name")
+@click.option(
+    "--upgrade",
+    is_flag=True,
+    default=False,
+    help="Re-install or upgrade the plugin even if it's already installed."
+)
+def install_plugin(plugin_name, upgrade):
+    """
+    Install a plugin by name, using its install script from the registry.
+    Does nothing if already installed (unless --upgrade is specified).
+    """
 
+    # 1) Get the plugin registry
+    registry = plugin_utils.retrieve_registry()  # e.g., returns dict from plugin_registry.json
+
+    # Check if the plugin is in the registry
+    plugin_info = registry.get(plugin_name)
+    if not plugin_info:
+        click.secho(f"Plugin '{plugin_name}' not found in registry.", fg="red")
+        return
+
+    install_url = plugin_info.get("install_url")
+    if not install_url:
+        click.secho(f"Plugin '{plugin_name}' has no install_url in registry.", fg="red")
+        return
+
+    # 2) Check if plugin is already installed
+    already_installed = plugin_utils.is_plugin_installed(plugin_name)
+
+    if already_installed and not upgrade:
+        click.secho(f"'{plugin_name}' is already installed. Use --upgrade to force re-install.", fg="yellow")
+        return
+
+    # 3) Pull down the install script
+    try:
+        click.secho(f"Fetching install script from {install_url} ...", fg="cyan")
+        resp = requests.get(install_url)
+        resp.raise_for_status()
+    except requests.RequestException as e:
+        click.secho(f"Error downloading install script: {e}", fg="red")
+        return
+
+    # 4) Write the script to a temporary file
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".sh") as tmp_file:
+        script_path = tmp_file.name
+        tmp_file.write(resp.text)
+
+    click.secho(f"Running install script for '{plugin_name}' ...", fg="cyan")
+    try:
+        # 5) Run the script
+        subprocess.run(["bash", script_path], check=True)
+        click.secho(f"'{plugin_name}' installed (or upgraded) successfully!", fg="green")
+    except subprocess.CalledProcessError as e:
+        click.secho(f"Error running install script: {e}", fg="red")
+    finally:
+        # 6) Cleanup: remove the temporary script
+        if os.path.exists(script_path):
+            os.remove(script_path)
