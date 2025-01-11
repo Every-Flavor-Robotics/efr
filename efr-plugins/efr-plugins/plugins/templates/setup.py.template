@@ -1,0 +1,22 @@
+# setup.py
+from setuptools import setup, find_packages
+
+setup(
+    name="efr-{name}",
+    version="0.1.0",
+    author="Your Name or Company",
+    author_email="Your Email",
+    description="{description}",
+    packages=find_packages(),
+    install_requires=[
+        "Click>=7.0",  # Ensure Click is installed
+        "questionary>=1.9.0",  # Ensure questionary is installed
+    ],
+    entry_points={{
+        # Register your subcommand under the efr.plugins group
+        "efr.plugins": [
+            "{name}={name}.cli:{name}",
+        ],
+    }},
+    python_requires=">=3.7",
+)

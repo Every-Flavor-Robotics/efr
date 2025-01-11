@@ -1,0 +1,25 @@
+"""cli.py
+
+cli entry point for the {name} plugin. {description}
+"""
+
+import click
+
+@click.group(name="{name}")
+def {name}():
+    """
+    A group of commands for the {name} plugin.
+    """
+    if ctx.invoked_subcommand is None:
+        # Print your docstring/info in a colorful, emoji-decorated format
+
+        pass
+
+@{name}.command()
+def example():
+    """
+    A sample command for the {name} plugin.
+    """
+    click.echo("Hello from the example command!")
+
+
