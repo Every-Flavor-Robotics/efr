@@ -15,6 +15,10 @@ pip install .
 
 echo "==> efr successfully installed!"
 
+# 3) Install the plugins plugin (non-editable mode)
+cd efr-plugins/efr-plugins
+pip install .
+
 # 4) Leave the repo directory and clean it up
 cd ..
 rm -rf efr
