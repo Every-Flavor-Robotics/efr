@@ -14,14 +14,16 @@
   - [Install in editable mode:](#install-in-editable-mode)
 - [Usage](#usage)
 - [Creating Plugins](#creating-plugins)
-- [Contributing](#contributing)
 
 ---
 
 ## Project Objectives
-1. **Centralize Tools**: Offer a single CLI entry point for various teams, whether you're working on software dev, video editing, pcb design, or anything else
+Think of `efr` as a toolbelt for Every Flavor's various software tools: it is a central place to find all of the utilities we've built up to speed up our workflow and reduce our mistakes. The project has three main objectives:
+
+
+1. **Centralize Tools**: Offer a single CLI entry point for various teams, whether you're working on software dev, video editing, pcb design, or anything else.
 2. **Extensible Architecture**: Support a robust plugin system, allowing each team to add new commands without touching the core codebase.
-3. **Ease of Use**: Offer straightforward commands and a user-friendly help system.
+3. **Ease of Use**: Offer straightforward and self-explanatory commands, with detailed help messages for each subcommand. You shouldn't need to read any docs or talk to Swapnil to get started.
 
 ---
 
@@ -41,6 +43,8 @@ The install script does the following:
 
 
 ### Install in editable mode:
+If you're developing or contributing to **efr**, you can install it in editable mode. This way, you can make changes to the code and see them reflected immediately.
+
 ```bash
 git clone https://github.com/Every-Flavor-Robotics/efr.git
 cd efr
@@ -76,13 +80,3 @@ For a quick start, check out our official [Creating a New **efr** Plugin](https:
 
 ---
 
-## Contributing
-We love contributions—whether it’s adding new functionality, improving documentation, or fixing bugs! To get started:
-
-1. Fork this repository and clone your fork.
-2. Create a branch for your feature or fix.
-3. Commit your changes, then open a pull request against **main**.
-
-Once approved, we’ll merge it, and your changes become part of the **efr** platform.
-
----
