@@ -9,6 +9,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "Click>=7.0",
+        "questionary>=1.9.0",
     ],
     entry_points={
         "console_scripts": [
