@@ -6,6 +6,7 @@ from pathlib import Path
 from plugins import plugin_utils
 import subprocess
 import pkg_resources
+import requests
 
 
 @click.group(
@@ -176,7 +177,6 @@ def list_plugins():
             desc = info.get("description", "No description")
             url = info.get("install_url", "No install URL provided")
             click.echo(f"• {name} : {desc}")
-            click.secho(f"   Install URL: {url}", fg="cyan")
     else:
         click.echo("(No uninstalled plugins found)")
 
