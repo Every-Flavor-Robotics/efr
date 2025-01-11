@@ -32,13 +32,25 @@ def init_new_plugin(name: str, path: Path):
         return
 
     # Questionary to ask for a description
-    description = click.prompt("Enter a short description for your plugin")
+    description = click.prompt("Enter a short description for your plugin (e.g. 'A plugin for managing awesome things.')")
 
-    plugin_dir = plugin_template_utils.create_new_plugin_project(path, name)
+    try:
+        plugin_dir = plugin_template_utils.create_new_plugin_project(path, name)
+    except FileExistsError:
+        click.secho(f"Error: Directory 'efr-{name}' already exists in '{path}'.", fg="red")
+        return
 
     plugin_template_utils.init_readme(plugin_dir, name, description)
     plugin_template_utils.init_setup_py(plugin_dir, name, description)
     plugin_template_utils.init_cli_py(plugin_dir, name, description)
+    plugin_template_utils.init_install_sh(plugin_dir, name)
+
+    # Print a checklist for what the user should do next
+    click.secho(f"\nPlugin '{name}' initialized at: {plugin_dir.resolve()}\n", fg="green")
+    click.secho("Next steps:", fg="cyan")
+    click.secho(f"\t1. Add info to setup.py", fg="cyan")
+    click.secho(f"\t2. Implement your plugin in cli.py", fg="cyan")
+    click.secho(f"\t3. Update README.md with details", fg="cyan")
 
 
 

@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import click
+import subprocess
 
 def create_new_plugin_project(path: Path, name: str):
     """
@@ -9,7 +10,7 @@ def create_new_plugin_project(path: Path, name: str):
     This function generates:
       1. A main directory named efr-<name>.
       2. A Python package directory matching 'name'.
-      3. Touch setup.py, __init__.py, and cli.py in the package.
+      3. Touch setup.py, __init__.py, cli.py, and install.sh in the package.
       4. A README.md for project documentation.
       5. An __init__.py and cli.py in the package.
 
@@ -54,11 +55,15 @@ def create_new_plugin_project(path: Path, name: str):
     readme_file = plugin_dir / "README.md"
     readme_file.touch()
 
+    # 7) Create install.sh
+    install_file = plugin_dir / "install.sh"
+    install_file.touch()
+
     return plugin_dir
 
 
 
-def _init_file(template_path: str, target_path: Path, name: str, description: str):
+def _init_file(template_path: str, target_path: Path, format_strings: dict):
     """
     Initialize a file from the templates folder for the new efr plugin project.
 
@@ -70,9 +75,7 @@ def _init_file(template_path: str, target_path: Path, name: str, description: st
     Args:
         template_path (Path): The path to the template file.
         target_path (Path): The path where the new file will be created.
-        name (str): The short name of your plugin (e.g. 'awesome').
-                    The final project folder would typically be 'efr-awesome'.
-        description (str): A short description of the plugin.
+        format_strings (Dict): A dictionary containing the format strings to be replaced in the template.
     """
 
     # Check that input and output files exist
@@ -86,11 +89,13 @@ def _init_file(template_path: str, target_path: Path, name: str, description: st
     template_content = template_path.read_text(encoding="utf-8")
 
     # 3) Format the string with the plugin name
-    rendered_content = template_content.format(name=name, description=description)
+    rendered_content = template_content.format(**format_strings)
 
 
     # 4) Write the final content out
     target_path.write_text(rendered_content, encoding="utf-8")
+
+    name = format_strings.get("name", "unknown")
 
     click.secho(f"\t{target_path.name} initialized for plugin '{name}' at: {target_path.resolve()}", fg="green")
 
@@ -110,7 +115,7 @@ def init_readme(plugin_dir: Path, name: str, description: str):
 
     target_path = plugin_dir / "README.md"
 
-    _init_file(template_path, target_path, name, description)
+    _init_file(template_path, target_path, {"name": name, "description": description})
 
 
 def init_setup_py(plugin_dir: Path, name: str, description: str):
@@ -128,7 +133,7 @@ def init_setup_py(plugin_dir: Path, name: str, description: str):
 
     target_path = plugin_dir / "setup.py"
 
-    _init_file(template_path, target_path, name, description)
+    _init_file(template_path, target_path, {"name": name, "description": description})
 
 def init_cli_py(plugin_dir: Path, name: str, description: str):
     """
@@ -145,6 +150,65 @@ def init_cli_py(plugin_dir: Path, name: str, description: str):
 
     target_path = plugin_dir / name / "cli.py"
 
-    _init_file(template_path, target_path, name, description)
+    _init_file(template_path, target_path, {"name": name, "description": description})
 
 
+def _get_git_details(plugin_dir: Path) -> dict:
+    """
+    Get the git details for the plugin directory.
+
+    Args:
+        plugin_dir (Path): The path to the plugin directory.
+
+    Returns:
+        dict: A dictionary containing the relative path of plugin_dir to the git repository root and the remote URL.
+
+    Raises:
+        FileNotFoundError: If the .git directory is not found.
+    """
+
+    # Check if the directory is inside a git repository
+    try:
+        repo_root = subprocess.check_output(
+            ["git", "-C", str(plugin_dir), "rev-parse", "--show-toplevel"],
+            stderr=subprocess.STDOUT
+        ).strip().decode('utf-8')
+    except subprocess.CalledProcessError:
+        raise FileNotFoundError(f"No git repository found for directory: {plugin_dir}")
+
+    # Get the relative path of plugin_dir to the git repository root
+    relative_path = os.path.relpath(plugin_dir, repo_root)
+
+    # Get the remote URL
+    try:
+        remote_url = subprocess.check_output(
+            ["git", "-C", str(plugin_dir), "config", "--get", "remote.origin.url"],
+            stderr=subprocess.STDOUT
+        ).strip().decode('utf-8')
+    except subprocess.CalledProcessError:
+        remote_url = None
+
+    # If remote URL is ssh, convert it to https
+    if remote_url and remote_url.startswith("git@"):
+        remote_url = remote_url.replace("git@", "https://").replace(":", "/")
+
+    return {
+        "relative_path": relative_path,
+        "remote_url": remote_url
+    }
+
+def init_install_sh(plugin_dir: Path, name: str):
+    """
+    Initialize an install.sh file for the new efr plugin project, from the template.
+
+    Args:
+        plugin_dir (Path): The path to the plugin directory where install.sh will be created.
+    """
+
+    template_path = Path(__file__).parent / "templates" / "install.sh.template"
+
+    target_path = plugin_dir / "install.sh"
+
+    git_details = _get_git_details(plugin_dir)
+
+    _init_file(template_path, target_path, {"plugin_repo" : git_details["remote_url"], "plugin_dir" : git_details["relative_path"], "name": name})
