@@ -4,6 +4,14 @@ import glob
 import pathlib
 from pathlib import Path
 from plugins import plugin_template_utils
+import requests
+import pkg_resources
+
+REGISTRY_URL = (
+    "https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/"
+    "refs/heads/main/efr-plugins/efr-plugins/plugins/plugin_registry.json"
+)
+
 
 
 @click.group(name="plugins")
@@ -13,10 +21,6 @@ def plugins():
     """
     pass
 
-
-@plugins.command(name = "list")
-def list_available_plugins():
-    pass
 
 
 @plugins.command(name = "init")
@@ -80,6 +84,101 @@ def get_registry_info(plugin_dir: Path):
     click.secho(f"}},", fg="cyan")
 
 
+
+@plugins.command(name="list")
+def list_plugins():
+    """
+    List available plugins from the registry, showing which are installed vs. not installed.
+    """
+
+    click.secho("Fetching plugin registry...", fg="cyan")
+    try:
+        response = requests.get(REGISTRY_URL)
+        response.raise_for_status()
+        registry = response.json()  # e.g., { "plugins": { "description": "...", "install_url": "..." } }
+    except requests.RequestException as e:
+        click.secho(f"Error fetching registry: {e}", fg="red")
+        return
+
+    # The registry might have multiple plugins keyed by name. Example structure:
+    #
+    # {
+    #    "plugin_a": {
+    #       "description": "...",
+    #       "install_url": "..."
+    #    },
+    #    "plugin_b": {
+    #       "description": "...",
+    #       "install_url": "..."
+    #    }
+    # }
+    #
+    # But your example shows only a top-level "plugins" key. Adjust as needed.
+    #
+    # For the example:
+    # {
+    #   "plugins": {
+    #       "description": "...",
+    #       "install_url": "..."
+    #   }
+    # }
+    # We'll assume each top-level key is a plugin name. The user’s example is somewhat ambiguous,
+    # so adapt to your real JSON structure.
+
+    # If your real structure has a single key "plugins" for one plugin, do something like:
+    #   plugin_data = registry["plugins"]
+    #   plugin_name = "plugins"
+    #   # Then wrap that in a dict so it matches { plugin_name: plugin_data }
+    #
+    # If your real structure is multiple named plugins, you can iterate them directly.
+    # Example below handles both cases gracefully.
+
+    if "plugins" in registry and isinstance(registry["plugins"], dict):
+        # The example shows only one plugin named "plugins"
+        # We'll treat that as { "plugins": {...} } => one plugin named "plugins"
+        # but let's unify it into a dictionary of { "plugins": { ... } }
+        # so we can iterate the same way if you had multiple.
+        plugin_registry = {"plugins": registry["plugins"]}
+    else:
+        # Otherwise, we assume the entire JSON is a map of plugin_name -> plugin_info
+        plugin_registry = registry
+
+    # Gather installed package names (lowercased) for easy membership checking
+    installed_packages = {dist.project_name.lower() for dist in pkg_resources.working_set}
+
+    installed_list = []
+    uninstalled_list = []
+
+    # Each key in plugin_registry is a plugin name (e.g. "plugins", "motor-go", "foo", etc.)
+    for plugin_name, plugin_info in plugin_registry.items():
+        # By convention, we might expect the installed package to be "efr-<plugin_name>"
+        # or some other known naming scheme. Adjust as necessary:
+        pkg_name = f"efr-{plugin_name}".lower()
+
+        if pkg_name in installed_packages:
+            installed_list.append((plugin_name, plugin_info))
+        else:
+            uninstalled_list.append((plugin_name, plugin_info))
+
+    click.secho("\n==== INSTALLED PLUGINS ====", fg="green")
+    if installed_list:
+        for name, info in installed_list:
+            desc = info.get("description", "No description")
+            click.echo(f"• {name} : {desc}")
+    else:
+        click.echo("(No plugins installed)")
+
+    click.secho("\n==== UNINSTALLED PLUGINS ====", fg="yellow")
+    if uninstalled_list:
+        for name, info in uninstalled_list:
+            desc = info.get("description", "No description")
+            url = info.get("install_url", "No install URL provided")
+            click.echo(f"• {name} : {desc}")
+            click.secho(f"   Install URL: {url}", fg="cyan")
+    else:
+        click.echo("(No uninstalled plugins found)")
+
+    click.echo()
 
 
 
