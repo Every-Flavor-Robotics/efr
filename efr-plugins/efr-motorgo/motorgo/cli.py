@@ -14,12 +14,38 @@ def motorgo():
     pass
 
 
-@motorgo.group()
-def boards():
+@motorgo.group(invoke_without_command=True)
+@click.pass_context
+def boards(ctx):
     """
     Tools for interacting with custom board definitions.
     """
-    pass
+    if ctx.invoked_subcommand is None:
+        # Print your docstring/info in a colorful, emoji-decorated format
+        click.secho("Installs custom board definition for PlatformIO.\n", fg="green", bold=True)
+
+        click.secho(
+            "To get started, clone the two repositories below to your local machine:",
+            fg="cyan",
+        )
+        click.echo("\t• Arduino-ESP32 Framework: https://github.com/Every-Flavor-Robotics/arduino-esp32.git")
+        click.echo("\t• Espressif32 Platform:     https://github.com/Every-Flavor-Robotics/platform-espressif32.git\n")
+
+        click.secho(
+            "Pass those paths to the install command utility as shown below.", fg="yellow")
+        click.secho(
+                        "\tefr motorgo boards install --board-name <board_name> --framework-path <path_to_framework> --platform-path <path_to_platform>\n\n"
+
+        )
+        click.secho(
+            "If you're not sure which of the platform and framework to install to, "
+            "you can use the --all flag to install to all available platforms and frameworks. "
+            "This is generally safe! \U0001F680\n",  # Rocket emoji
+            fg="yellow",
+        )
+
+        # Exit after showing this info so that Click doesn't complain about a missing subcommand
+        ctx.exit(0)
 
 
 @boards.command(
