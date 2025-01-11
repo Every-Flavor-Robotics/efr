@@ -4,6 +4,8 @@ import glob
 import pathlib
 from pathlib import Path
 from plugins import plugin_utils
+import subprocess
+import pkg_resources
 
 
 @click.group(
@@ -14,6 +16,7 @@ Utilities for installing plugins for the `efr` CLI and for developing new plugin
 
   list                 List available plugins from the plugin registry.
   install <plugin>     Install a plugin by name.
+  uninstall <plugin>   Uninstall a plugin by name.
 
 For development:\n
   init                 Initialize a new plugin project, filling in boilerplate.
@@ -31,6 +34,7 @@ def plugins(ctx):
         click.secho("List of commands:", fg="cyan", bold=True)
         click.secho("  list                 List available plugins from the plugin registry", fg="yellow")
         click.secho("  install <plugin>     Install a plugin by name", fg="yellow")
+        click.secho("  uninstall <plugin>   Uninstall a plugin by name", fg="yellow")
 
         click.echo()
         click.secho("For development:", fg="cyan", bold=True)
