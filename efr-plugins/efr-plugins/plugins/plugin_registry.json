@@ -1,0 +1,6 @@
+{
+    "plugins": {
+        "description": "Utilites for managing plugins for `efr` CLI",
+        "install_url": "https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/refs/heads/main/efr-plugins/efr-plugins/install.sh"
+    }
+}
