@@ -10,14 +10,14 @@ git clone https://github.com/Every-Flavor-Robotics/efr.git
 cd efr
 
 # 3) Upgrade pip if desired, then install efr (non-editable mode)
-pip install --upgrade pip
-pip install .
+pip3 install --upgrade pip
+pip3 install .
 
 echo "==> efr successfully installed!"
 
 # 3) Install the plugins plugin (non-editable mode)
 cd efr-plugins/efr-plugins
-pip install .
+pip3 install .
 
 # 4) Leave the repo directory and clean it up
 cd ../../../
