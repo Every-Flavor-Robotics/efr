@@ -291,4 +291,8 @@ def install(all, force, board_name, framework_path, platform_path):
     for version in versions:
         copy_platform_files(platform_versions[version], board_json_path, force=force)
 
-    click.secho("Board definition installed successfully.", fg="green")
+    click.secho("\nBoard definition installed successfully.", fg="green", bold=True)
+    click.secho(
+        "\tNote: if you just installed a new version of the espressif32 platform in PlatformIO, you may have to run this command one more time after you try to build.",
+        fg="yellow",
+    )
