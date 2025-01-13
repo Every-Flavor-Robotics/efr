@@ -37,7 +37,7 @@ def cli(ctx):
         # Description
         click.secho(
             "Plugins are the heart of efr: they provide the functionality for all of the various tasks.",
-            fg="bright_magenta"
+            fg="bright_magenta",
         )
 
         # Installed plugins
@@ -56,12 +56,13 @@ def cli(ctx):
 
         click.secho(
             "To see a list of installable plugins, run 'efr plugins list'",
-            fg="bright_magenta")
+            fg="bright_magenta",
+        )
 
         # Documentation link
         click.echo(
             "\nFor more documentation, check out:\n"
-            "  https://github.com/Every-Flavor-Robotics/efr/blob/main/README.md"
+            "  https://github.com/Every-Flavor-Robotics/efr"
         )
 
         # Usage help
