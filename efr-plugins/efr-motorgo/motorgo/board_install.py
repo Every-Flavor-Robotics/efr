@@ -1,10 +1,11 @@
 # motorgo/cli.py
-import click
-import os
 import glob
-from pathlib import Path
-import questionary
+import os
 import shutil
+from pathlib import Path
+
+import click
+import questionary
 
 # Global variables
 # Path to PIO files
@@ -20,7 +21,9 @@ BOARD_JSON_PATH = "./platformio_board_defs/board_json/*"
 VARIANTS_PATH = "./motorgo_1.0/variants/*"
 
 
-def copy_framework_files(framework_versioned_path: Path, variant_path: Path, force=False):
+def copy_framework_files(
+    framework_versioned_path: Path, variant_path: Path, force=False
+):
     """
     Copy framework files to the specified versioned path.
 
@@ -68,7 +71,10 @@ def copy_framework_files(framework_versioned_path: Path, variant_path: Path, for
             )
             return
 
-def copy_platform_files(platform_versioned_path: Path, board_json_path: Path, force=False):
+
+def copy_platform_files(
+    platform_versioned_path: Path, board_json_path: Path, force=False
+):
     """
     Copy boards.json files to the specified versioned path.
 
@@ -88,7 +94,9 @@ def copy_platform_files(platform_versioned_path: Path, board_json_path: Path, fo
 
     try:
         # Attempt to copy the board JSON file to the boards directory
-        shutil.copy2(board_json_path, os.path.join(boards_dir, os.path.basename(board_json_path)))
+        shutil.copy2(
+            board_json_path, os.path.join(boards_dir, os.path.basename(board_json_path))
+        )
     except FileExistsError:
         if force:
             # If the force flag is set, notify the user that the board JSON file will be overwritten
@@ -101,7 +109,10 @@ def copy_platform_files(platform_versioned_path: Path, board_json_path: Path, fo
             os.remove(os.path.join(boards_dir, os.path.basename(board_json_path)))
 
             # Copy the board JSON file again
-            shutil.copy2(board_json_path, os.path.join(boards_dir, os.path.basename(board_json_path)))
+            shutil.copy2(
+                board_json_path,
+                os.path.join(boards_dir, os.path.basename(board_json_path)),
+            )
         else:
             # If the force flag is not set, notify the user that the board JSON file already exists and will not be overwritten
             click.secho(
@@ -109,7 +120,6 @@ def copy_platform_files(platform_versioned_path: Path, board_json_path: Path, fo
                 fg="yellow",
             )
             return
-
 
 
 def get_platform_versions():
@@ -135,17 +145,26 @@ def get_platform_versions():
     if not platforms_path.exists():
         raise FileNotFoundError(f"Path not found: {platforms_path}")
 
-    # Get list of all directories in platforms_path that match the pattern PLATFORM_NAME@*
+    # Get list of all directories in platforms_path that match the pattern PLATFORM_NAME@* or PLATFORM_NAME
     platform_dirs = platforms_path.glob(f"{PLATFORM_NAME}@*")
+
+    # Check if pattern PLATFORM_NAME exists:
+    platform_dir_latest = platforms_path / PLATFORM_NAME
+    if platform_dir_latest.exists():
+        platform_dirs = [platform_dir_latest] + list(platform_dirs)
 
     platform_versions = {}
 
     # For each platform directory, get the version and add it to the dictionary
     for platform_dir in platform_dirs:
-        platform_version = platform_dir.name.split("@")[-1]
+        if "@" in platform_dir.name:
+            platform_version = platform_dir.name.split("@")[-1]
+        else:
+            platform_version = "latest"
         platform_versions[platform_version] = Path(platform_dir)
 
     return platform_versions
+
 
 def get_framework_versions():
     """
@@ -170,14 +189,22 @@ def get_framework_versions():
     if not frameworks_path.exists():
         raise FileNotFoundError(f"Path not found: {frameworks_path}")
 
-    # Get list of all directories in frameworks_path that match the pattern FRAMEWORK_NAME@*
+    # Get list of all directories in frameworks_path that match the pattern FRAMEWORK_NAME OR FRAMEWORK_NAME@*
     framework_dirs = frameworks_path.glob(f"{FRAMEWORK_NAME}@*")
+
+    # Check if pattern FRAMEWORK_NAME exists:
+    framework_dir_latest = frameworks_path / FRAMEWORK_NAME
+    if framework_dir_latest.exists():
+        framework_dirs = [framework_dir_latest] + list(framework_dirs)
 
     framework_versions = {}
 
     # For each framework directory, get the version and add it to the dictionary
     for framework_dir in framework_dirs:
-        framework_version = framework_dir.name.split("@")[-1]
+        if "@" in framework_dir.name:
+            framework_version = framework_dir.name.split("@")[-1]
+        else:
+            framework_version = "latest"
         framework_versions[framework_version] = Path(framework_dir)
 
     return framework_versions
