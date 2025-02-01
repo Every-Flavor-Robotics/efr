@@ -163,12 +163,6 @@ def get_platform_versions():
             platform_version = "latest"
         platform_versions[platform_version] = Path(platform_dir)
 
-    latest_path = platforms_path / PLATFORM_NAME
-    # Check if it exists
-    if latest_path.exists():
-        platform_versions["latest"] = latest_path
-
-
     return platform_versions
 
 
@@ -213,11 +207,6 @@ def get_framework_versions():
         else:
             framework_version = "latest"
         framework_versions[framework_version] = Path(framework_dir)
-
-    latest_path = frameworks_path / FRAMEWORK_NAME
-    # Check if it exists
-    if latest_path.exists():
-        framework_versions["latest"] = latest_path
 
     return framework_versions
 
