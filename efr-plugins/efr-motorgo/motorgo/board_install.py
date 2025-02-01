@@ -18,7 +18,7 @@ PLATFORM_NAME = "espressif32"
 
 BOARDS_TXT_PATH = "./platformio_board_defs/boards.txt"
 BOARD_JSON_PATH = "platformio_tools/board_jsons/"
-VARIANTS_PATH = "motorgo_experimental_*/variants/"
+VARIANTS_PATH = "motorgo_experimental/variants/"
 
 
 def copy_framework_files(
@@ -219,18 +219,7 @@ def install(all, force, board_name, board_path):
     board_path = Path(board_path)
 
     # Search for the variant path using glob
-    variants_path = list(board_path.glob(VARIANTS_PATH))
-
-    if not variants_path:
-        click.secho(f"Variants not found at {board_path}.", fg="red")
-        click.secho(f"If you are using a custom board path, something is wrong with the path you provided.", fg="yellow")
-        click.secho(f"If not, let Swapnil know something is wrong.", fg="yellow")
-        return
-
-    # Get the first variant path
-    variants_path = variants_path[0]
-
-    variant_path = variants_path / board_name
+    variant_path = board_path / VARIANTS_PATH / f"{board_name}"
 
     # Check if the variant and board JSON files exist
     if not variant_path.exists():
