@@ -4,6 +4,20 @@ import os
 import glob
 from pathlib import Path
 from motorgo import board_install
+import requests
+import tempfile
+
+EXPERIMENTAL_BOARDS_REPO = "https://github.com/Every-Flavor-Robotics/motorgo-experimental-boards/"
+
+def get_available_boards():
+    PACKAGE_INDEX_PATH = "https://raw.githubusercontent.com/Every-Flavor-Robotics/motorgo-experimental-boards/refs/heads/main/efr_board_index.json"
+    try:
+        # Get the list of available boards from the package index
+        package_index = requests.get(PACKAGE_INDEX_PATH).json()
+        boards = package_index["boards"]
+        return boards
+    except Exception as e:
+        return None
 
 
 @click.group(
@@ -47,48 +61,58 @@ def motorgo(ctx):
 @click.pass_context
 def boards(ctx):
     """
-    Tools for interacting with custom board definitions.
+    Tools for interacting with experimental board definitions.
     """
     if ctx.invoked_subcommand is None:
         # Print your docstring/info in a colorful, emoji-decorated format
-        click.secho("Installs custom board definition for PlatformIO.\n", fg="green", bold=True)
+        click.secho("Tools for working with experimental board definitions.\n", fg="green", bold=True)
+
+        click.secho("To check if a board is experimental or production, refer to the docs at: https://docs.motorgo.net/standalone_mode/board_setup\n", fg="cyan")
+
 
         click.secho(
-            "To get started, retrieve the board definitions by cloning the two repositories below to your local machine:",
-            fg="cyan",
+            "Available Commands:", fg="cyan", bold=True
         )
-        click.echo("\t• Arduino-ESP32 Framework: https://github.com/Every-Flavor-Robotics/arduino-esp32.git")
-        click.echo("\t• Espressif32 Platform:     https://github.com/Every-Flavor-Robotics/platform-espressif32.git\n")
+        click.secho("\tinstall\t\tInstall custom board definitions for PlatformIO", fg="yellow")
+        click.secho("\tuninstall\tActually does nothing :)", fg="yellow")
+        click.secho("\tlist\t\tPrints the available boards, and their identifiers for installing", fg="yellow")
 
-        click.secho(
-            "Pass those paths to the install command utility as shown below.", fg="yellow")
-        click.secho(
-                        "\tefr motorgo boards install --board-name <board_name> --framework-path <path_to_framework> --platform-path <path_to_platform>\n\n"
+        print()
+        click.secho("Available Boards:", fg="cyan", bold=True)
+        boards = get_available_boards()
+        if boards:
+            for board in boards:
+                click.secho(f"\t{board['name']}: {board['identifier']}", fg="yellow")
+        else:
+            click.secho("\tError fetching board list", fg="red")
 
-        )
-        click.secho(
-            "If you're not sure which versions of the platform and framework to install to, "
-            "you can use the --all flag to install to all available platforms and frameworks. "
-            "This is generally safe! \U0001F680\n",  # Rocket emoji
-            fg="yellow",
-        )
+        # click.secho(
+        #     "If you're not sure which versions of the platform and framework to install to, "
+        #     "you can use the --all flag to install to all available platforms and frameworks. "
+        #     "This is generally safe! \U0001F680\n",  # Rocket emoji
+        #     fg="yellow",
+        # )
 
         # Exit after showing this info so that Click doesn't complain about a missing subcommand
         ctx.exit(0)
 
+@boards.command(
+    name="list",
+    help="Prints the available boards, and their identifiers for installing.")
+def list():
+    boards = get_available_boards()
+    if boards:
+        for board in boards:
+            click.secho(f"{board['name']}: {board['identifier']}", fg="yellow")
+    else:
+        click.secho("Error fetching board list", fg="red")
 
 @boards.command(
     name="install",
     help="""
 Installs custom board definition for PlatformIO.
 
-To get started, clone the two repositories below to your local machine:\n
-\t- Arduino-ESP32 Framework: https://github.com/Every-Flavor-Robotics/arduino-esp32.git\n
-\t- Espressif32 Platform: https://github.com/Every-Flavor-Robotics/platform-espressif32.git
-
-Pass those paths to the install command utility as shown below.\n
-If you're not sure which of the platform and framework to install to, you can use the --all flag to install to all available platforms and frameworks. This is generall safe!
-
+If you don't know which versions of the platform and framework to install to, you can use the --all flag to install to all available platforms and frameworks. This is generally safe!
 """
 )
 @click.option(
@@ -109,23 +133,46 @@ If you're not sure which of the platform and framework to install to, you can us
     help="Name of the board to install. Example: 'motorgo_plink'",
 )
 @click.option(
-    "--framework-path",
-    required=True,
+    "--custom-board-path",
+    required=False,
     type=click.Path(exists=True),
-    help="Path to the framework where the board will be installed.",
+    help="Pass a custom path for the experimental boards repo, for developingment purposes.",
 )
-@click.option(
-    "--platform-path",
-    required=True,
-    type=click.Path(exists=True),
-    help="Path to the platform definitions directory.",
-)
-def install(all, force, board_name, framework_path, platform_path):
+def install(all, force, board_name, custom_board_path):
     """
     Install custom board definitions.
     """
 
-    board_install.install(all, force, board_name, framework_path, platform_path)
+    click.secho(f"Installing board '{board_name}'...", fg="green")
+
+    boards = get_available_boards()
+    # Confirm that the board exists
+    board_exists = False
+    for board in boards:
+        if board["identifier"] == board_name:
+            board_exists = True
+            break
+
+    if not board_exists:
+        click.secho(f"Board '{board_name}' not found in the list of available boards.", fg="red")
+        click.secho("Run 'efr motorgo boards list' to see the list of available boards.", fg="yellow")
+        return
+
+    temp_dir = None
+    if not custom_board_path:
+        # Clone the repo to a temporary directory
+        temp_dir = tempfile.TemporaryDirectory()
+        custom_board_path = Path(temp_dir.name)
+
+        # Clone the repo
+        os.system(f"git clone {EXPERIMENTAL_BOARDS_REPO} {custom_board_path} > /dev/null 2>&1")
+
+
+    board_install.install(all, force, board_name, custom_board_path)
+
+    if(temp_dir):
+        temp_dir.cleanup()
+
 
 @boards.command(
     name="uninstall",

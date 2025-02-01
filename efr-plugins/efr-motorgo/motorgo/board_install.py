@@ -17,8 +17,8 @@ FRAMEWORK_NAME = "framework-arduinoespressif32"
 PLATFORM_NAME = "espressif32"
 
 BOARDS_TXT_PATH = "./platformio_board_defs/boards.txt"
-BOARD_JSON_PATH = "./platformio_board_defs/board_json/*"
-VARIANTS_PATH = "./motorgo_1.0/variants/*"
+BOARD_JSON_PATH = "platformio_tools/board_jsons/"
+VARIANTS_PATH = "motorgo_experimental_*/variants/"
 
 
 def copy_framework_files(
@@ -163,6 +163,12 @@ def get_platform_versions():
             platform_version = "latest"
         platform_versions[platform_version] = Path(platform_dir)
 
+    latest_path = platforms_path / PLATFORM_NAME
+    # Check if it exists
+    if latest_path.exists():
+        platform_versions["latest"] = latest_path
+
+
     return platform_versions
 
 
@@ -184,6 +190,7 @@ def get_framework_versions():
 
     # Get the path to the installed package
     frameworks_path = Path(PIO_PATH).expanduser() / RELATIVE_PACKAGES_PATH
+
 
     # Check if the frameworks_path exists
     if not frameworks_path.exists():
@@ -207,30 +214,50 @@ def get_framework_versions():
             framework_version = "latest"
         framework_versions[framework_version] = Path(framework_dir)
 
+    latest_path = frameworks_path / FRAMEWORK_NAME
+    # Check if it exists
+    if latest_path.exists():
+        framework_versions["latest"] = latest_path
+
     return framework_versions
 
 
-def install(all, force, board_name, framework_path, platform_path):
+def install(all, force, board_name, board_path):
     """
     Install custom board definitions.
     """
 
-    variant_path = Path(framework_path) / "variants" / board_name
-    board_json_path = Path(platform_path) / "boards" / f"{board_name}.json"
+    board_path = Path(board_path)
+
+    # Search for the variant path using glob
+    variants_path = list(board_path.glob(VARIANTS_PATH))
+
+    if not variants_path:
+        click.secho(f"Variants not found at {board_path}.", fg="red")
+        click.secho(f"If you are using a custom board path, something is wrong with the path you provided.", fg="yellow")
+        click.secho(f"If not, let Swapnil know something is wrong.", fg="yellow")
+        return
+
+    # Get the first variant path
+    variants_path = variants_path[0]
+
+    variant_path = variants_path / board_name
 
     # Check if the variant and board JSON files exist
     if not variant_path.exists():
         click.secho(f"Variant path not found: {variant_path}", fg="red")
         click.secho(
-            "This means that either your variant path is incorrect or the board name is incorrect.",
+            "This means that your board name is incorrect. If you're confident that the board name is correct, let Swapnil know.",
             fg="yellow",
         )
         return
 
+    board_json_path = board_path / BOARD_JSON_PATH / f"{board_name}.json"
+
     if not board_json_path.exists():
         click.echo(f"Board JSON file not found: {board_json_path}")
         click.secho(
-            "This means that either your board JSON path is incorrect or the board name is incorrect.",
+            "This probably means that Swapnil made a mistake - let him know.",
             fg="yellow",
         )
         return
@@ -242,15 +269,18 @@ def install(all, force, board_name, framework_path, platform_path):
         # Ask the user which versions to install the board definition to
         options = list(framework_versions.keys())
 
-        # Prompt the user to select a version
-        versions = questionary.checkbox(
-            "Select the framework version to install the board definition to:",
-            choices=options,
-        ).ask()
+        if options:
+            # Prompt the user to select a version
+            versions = questionary.checkbox(
+                "Select the framework version to install the board definition to:",
+                choices=options,
+            ).ask()
 
-        if not versions:
-            click.echo("No versions selected. Exiting.")
-            return
+            if not versions:
+                click.echo("No versions selected. Skipping framework installation.")
+        else:
+            click.echo("No framework versions found. Skipping framework installation. You may have to re-run this command after you try building your project.")
+            versions = []
 
     else:
         versions = list(framework_versions.keys())
