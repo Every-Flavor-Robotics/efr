@@ -264,8 +264,7 @@ def install(all, force, board_name, board_path):
         versions = list(framework_versions.keys())
 
         if not versions:
-            click.echo("No framework versions found. Exiting.")
-            return
+            click.echo("No framework versions found. Skipping.")
 
     # Copy the package files to the selected versions
     for version in versions:
@@ -292,8 +291,7 @@ def install(all, force, board_name, board_path):
         versions = list(platform_versions.keys())
 
         if not versions:
-            click.echo("No platform versions found. Exiting.")
-            return
+            click.echo("No platform versions found. Skipping.")
 
     # Copy the package files to the selected versions
     for version in versions:
