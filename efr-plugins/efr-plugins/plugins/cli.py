@@ -1,13 +1,15 @@
-import click
-import os
 import glob
+import os
 import pathlib
-from pathlib import Path
-from plugins import plugin_utils
 import subprocess
+import tempfile
+from pathlib import Path
+
+import click
 import pkg_resources
 import requests
-import tempfile
+
+from plugins import plugin_utils
 
 
 @click.group(
@@ -34,15 +36,23 @@ def plugins(ctx):
         click.secho("🔌  efr plugins  🔌", fg="magenta", bold=True)
         click.echo()
         click.secho("List of commands:", fg="cyan", bold=True)
-        click.secho("  list                 List available plugins from the plugin registry", fg="yellow")
+        click.secho(
+            "  list                 List available plugins from the plugin registry",
+            fg="yellow",
+        )
         click.secho("  install <plugin>     Install a plugin by name", fg="yellow")
         click.secho("  uninstall <plugin>   Uninstall a plugin by name", fg="yellow")
 
         click.echo()
         click.secho("For development:", fg="cyan", bold=True)
 
-        click.secho("  init                 Initialize a new plugin project. This sets up the plugin project fully", fg="yellow")
-        click.secho("  get_registry_info    Get registry info for a plugin project", fg="yellow")
+        click.secho(
+            "  init                 Initialize a new plugin project. This sets up the plugin project fully",
+            fg="yellow",
+        )
+        click.secho(
+            "  get_registry_info    Get registry info for a plugin project", fg="yellow"
+        )
 
         click.echo()
         # Documentation link
@@ -55,12 +65,20 @@ def plugins(ctx):
         ctx.exit(0)
 
 
+@plugins.command(
+    name="init",
+    help="""Initialize a new plugin project, filling in boilerplate.
 
+Example: To create a plugin named 'awesome', run:
+    efr plugins init awesome
 
-@plugins.command(name = "init",
-help="Initialize a new plugin project, filling in boilerplate.")
+This will create a new directory 'efr-awesome' in the current directory
+""",
+)
 @click.argument("name")
-@click.option("--path", default=os.getcwd(), help="Path to create the new plugin project")
+@click.option(
+    "--path", default=os.getcwd(), help="Path to create the new plugin project"
+)
 def init_new_plugin(name: str, path: Path):
     path = Path(path)
 
@@ -71,12 +89,16 @@ def init_new_plugin(name: str, path: Path):
         return
 
     # Questionary to ask for a description
-    description = click.prompt("Enter a short description for your plugin (e.g. 'A plugin for managing awesome things.')")
+    description = click.prompt(
+        "Enter a short description for your plugin (e.g. 'A plugin for managing awesome things.')"
+    )
 
     try:
         plugin_dir = plugin_utils.create_new_plugin_project(path, name)
     except FileExistsError:
-        click.secho(f"Error: Directory 'efr-{name}' already exists in '{path}'.", fg="red")
+        click.secho(
+            f"Error: Directory 'efr-{name}' already exists in '{path}'.", fg="red"
+        )
         return
 
     plugin_utils.init_readme(plugin_dir, name, description)
@@ -85,18 +107,25 @@ def init_new_plugin(name: str, path: Path):
     plugin_utils.init_install_sh(plugin_dir, name)
 
     # Print a checklist for what the user should do next
-    click.secho(f"\nPlugin '{name}' initialized at: {plugin_dir.resolve()}\n", fg="green")
+    click.secho(
+        f"\nPlugin '{name}' initialized at: {plugin_dir.resolve()}\n", fg="green"
+    )
     click.secho("Next steps:", fg="cyan")
     click.secho(f"\t1. Add info to setup.py", fg="cyan")
     click.secho(f"\t2. Implement your plugin in cli.py", fg="cyan")
     click.secho(f"\t3. Update README.md with details", fg="cyan")
-    click.secho(f"\t4. Add the plugin to the registry using the `get_registry_info` command", fg="cyan")
+    click.secho(
+        f"\t4. Add the plugin to the registry using the `get_registry_info` command",
+        fg="cyan",
+    )
 
     print(plugin_utils.get_github_raw_url(plugin_dir, Path("install.sh")))
 
 
-@plugins.command(name = "get_registry_info",
-help="Get registry info for a new plugin to add it to the plugin registry.")
+@plugins.command(
+    name="get_registry_info",
+    help="Get registry info for a new plugin to add it to the plugin registry.",
+)
 @click.argument("plugin_dir", type=click.Path(exists=True))
 def get_registry_info(plugin_dir: Path):
     plugin_dir = Path(plugin_dir)
@@ -104,7 +133,6 @@ def get_registry_info(plugin_dir: Path):
     if not plugin_dir.exists():
         click.secho(f"Error: Directory '{plugin_dir}' does not exist.", fg="red")
         return
-
 
     plugin_name = plugin_dir.name.replace("efr-", "")
     plugin_description = plugin_utils.get_description(plugin_dir)
@@ -114,13 +142,10 @@ def get_registry_info(plugin_dir: Path):
 
     # Provide JSON output for the registry
     click.secho(f"Add the following to the registry in 'efr-plugins':", fg="green")
-    click.secho(f"\"{plugin_name}\": {{", fg="cyan")
-    click.secho(f"\t\"description\": \"{plugin_description}\",", fg="cyan")
-    click.secho(f"\t\"install_url\": \"{plugin_install_url}\"", fg="cyan")
+    click.secho(f'"{plugin_name}": {{', fg="cyan")
+    click.secho(f'\t"description": "{plugin_description}",', fg="cyan")
+    click.secho(f'\t"install_url": "{plugin_install_url}"', fg="cyan")
     click.secho(f"}},", fg="cyan")
-
-
-
 
 
 @plugins.command(name="list")
@@ -148,7 +173,9 @@ def list_plugins():
     # so adapt to your real JSON structure.
 
     # Gather installed package names (lowercased) for easy membership checking
-    installed_packages = {dist.project_name.lower() for dist in pkg_resources.working_set}
+    installed_packages = {
+        dist.project_name.lower() for dist in pkg_resources.working_set
+    }
 
     installed_list = []
     uninstalled_list = []
@@ -190,7 +217,7 @@ def list_plugins():
     "--upgrade",
     is_flag=True,
     default=False,
-    help="Re-install or upgrade the plugin even if it's already installed."
+    help="Re-install or upgrade the plugin even if it's already installed.",
 )
 def install_plugin(plugin_name, upgrade):
     """
@@ -199,7 +226,9 @@ def install_plugin(plugin_name, upgrade):
     """
 
     # 1) Get the plugin registry
-    registry = plugin_utils.retrieve_registry()  # e.g., returns dict from plugin_registry.json
+    registry = (
+        plugin_utils.retrieve_registry()
+    )  # e.g., returns dict from plugin_registry.json
 
     # Check if the plugin is in the registry
     plugin_info = registry.get(plugin_name)
@@ -216,7 +245,10 @@ def install_plugin(plugin_name, upgrade):
     already_installed = plugin_utils.is_plugin_installed(plugin_name)
 
     if already_installed and not upgrade:
-        click.secho(f"'{plugin_name}' is already installed. Use --upgrade to force re-install.", fg="yellow")
+        click.secho(
+            f"'{plugin_name}' is already installed. Use --upgrade to force re-install.",
+            fg="yellow",
+        )
         return
 
     # 3) Pull down the install script
@@ -237,7 +269,9 @@ def install_plugin(plugin_name, upgrade):
     try:
         # 5) Run the script
         subprocess.run(["bash", script_path], check=True)
-        click.secho(f"'{plugin_name}' installed (or upgraded) successfully!", fg="green")
+        click.secho(
+            f"'{plugin_name}' installed (or upgraded) successfully!", fg="green"
+        )
     except subprocess.CalledProcessError as e:
         click.secho(f"Error running install script: {e}", fg="red")
     finally:
@@ -264,7 +298,7 @@ def uninstall_plugin(plugin_name):
     try:
         subprocess.run(
             ["pip", "uninstall", "-y", package_name],  # -y to skip confirmation
-            check=True
+            check=True,
         )
         click.secho(f"'{plugin_name}' successfully uninstalled!", fg="green")
     except subprocess.CalledProcessError as e:
