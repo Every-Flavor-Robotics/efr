@@ -141,7 +141,7 @@ def list_repos(pattern):
 
 
 @gh.command()
-@click.argument("repo", shell_complete=complete_repos)
+@click.argument("repo")
 # Option to use ssh to clone, default is https
 @click.option("--ssh", is_flag=True, help="Use SSH protocol to clone the repository.")
 def clone(repo, ssh):
@@ -173,6 +173,55 @@ def clone(repo, ssh):
         # Split the error message into lines, indent each line, then join them back
         indented_err = "\n".join("    " + line for line in result.stderr.splitlines())
         click.secho(indented_err, fg="red")
+
+
+# Add a command that will quickly convert back and forth between ssh and https
+
+
+@gh.command(
+    name="togprot", help="Toggle the current repo between https and ssh protocols."
+)
+def toggle_protocol():
+    """
+    Toggle the current repository between HTTPS and SSH protocols.
+
+    This command assumes the current working directory is a Git repository.
+    """
+    # Get the current remote URL for the 'origin' remote
+    result = subprocess.run(
+        ["git", "remote", "get-url", "origin"], capture_output=True, text=True
+    )
+
+    if result.returncode != 0:
+        click.secho(
+            "Failed to get the remote URL. Make sure you are in a github repo.",
+            fg="red",
+        )
+        return
+
+    https_prefix = "https://github.com/"
+    ssh_prefix = "git@github.com:"
+
+    current_url = result.stdout.strip()
+    if current_url.startswith(https_prefix):
+        new_url = current_url.replace(https_prefix, ssh_prefix)
+        new_protocol = "ssh"
+    elif current_url.startswith(ssh_prefix):
+        new_url = current_url.replace(ssh_prefix, https_prefix)
+        new_protocol = "https"
+    else:
+        click.secho("Unsupported URL format.", fg="red")
+        return
+
+    # Update the remote URL with the new protocol
+    result = subprocess.run(
+        ["git", "remote", "set-url", "origin", new_url], capture_output=True, text=True
+    )
+
+    if result.returncode == 0:
+        click.secho(f"Protocol updated successfully to {new_protocol}.", fg="green")
+    else:
+        click.secho("Failed to update the protocol.", fg="red")
 
 
 if __name__ == "__main__":
