@@ -10,6 +10,8 @@ setup(
     install_requires=[
         "Click>=7.0",
         "questionary>=1.9.0",
+        "setuptools>=75.8.2",
+        "request>=2.32.3",
     ],
     entry_points={
         "console_scripts": [
