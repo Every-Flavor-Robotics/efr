@@ -1,29 +1,56 @@
 #!/usr/bin/env bash
 set -e
 
-echo "==> Installing efr..."
+EFRC_HOME="$HOME/.efr"
+VENV_DIR="$EFRC_HOME/venv"
 
-# 1) Clone the repository
-git clone https://github.com/Every-Flavor-Robotics/efr.git
+# Ensure required directories exist
+mkdir -p "$EFRC_HOME"
 
-# 2) Enter the cloned directory
-cd efr
+# Clone efr repository into temporary directory
+echo "==> Cloning efr repository..."
+git clone https://github.com/Every-Flavor-Robotics/efr.git "$EFRC_HOME/efr-tmp"
 
-# 3) Upgrade pip if desired, then install efr (non-editable mode)
-pip3 install --upgrade pip
-pip3 install .
+# Set up the virtual environment with uv
+echo "==> Setting up virtual environment with uv..."
+uv venv "$VENV_DIR"
 
-echo "==> efr successfully installed!"
+# Activate virtual environment
+source "$VENV_DIR/bin/activate"
 
-# 3) Install the plugins plugin (non-editable mode)
-cd efr-plugins/efr-plugins
-pip3 install .
+# Upgrade pip within the virtual environment
+uv pip install --upgrade pip
 
-# 4) Leave the repo directory and clean it up
-cd ../../../
-rm -rf efr
+# Install efr
+cd "$EFRC_HOME/efr-tmp"
+echo "==> Installing efr package..."
+uv pip install .
 
-# 5) Remove this installer script
+# Install efr plugins
+if [ -d "efr-plugins/efr-plugins" ]; then
+    cd efr-plugins/efr-plugins
+    echo "==> Installing efr plugins..."
+    uv pip install .
+else
+    echo "==> efr plugins directory not found, skipping plugin installation."
+fi
+
+# Create global command wrapper
+echo "==> Registering global efr command..."
+echo "#!/usr/bin/env bash\nsource \"$VENV_DIR/bin/activate\"\nefr \"\$@\"" > "$HOME/.local/bin/efr"
+chmod +x "$HOME/.local/bin/efr"
+
+
+# Cleanup
+echo "==> Cleaning up temporary files..."
+cd "$HOME"
+rm -rf "$EFRC_HOME/efr-tmp"
 rm -- "$0"
 
-echo "==> Cleanup complete."
+# Provide instructions to add to PATH
+if ! grep -q "$VENV_DIR/bin" <<<"$PATH"; then
+    echo -e "\nIMPORTANT: To run efr from anywhere, add the following line to your shell profile (e.g., ~/.bashrc or ~/.zshrc):"
+    echo "export PATH=\"$VENV_DIR/bin:\$PATH\""
+fi
+
+echo "==> efr installation complete!"
