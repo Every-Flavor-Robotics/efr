@@ -1,5 +1,5 @@
 # setup.py
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 setup(
     name="efr-plugins",
@@ -20,4 +20,7 @@ setup(
         ],
     },
     python_requires=">=3.7",
+    package_data={
+        "plugins": ["templates/*"],  # Ensure the templates directory is included
+    },
 )
