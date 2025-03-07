@@ -13,7 +13,6 @@ from pathlib import Path
 import click
 import questionary
 import requests
-
 from gh.init_utils import (
     GITIGNORE_TEMPLATES,
     create_gitignore,
@@ -78,18 +77,70 @@ def complete_repos(ctx, args, incomplete):
     return [repo["name"] for repo in repos if repo["name"].startswith(incomplete)]
 
 
-@click.group(name="gh")
+@click.group(
+    name="gh",
+    invoke_without_command=True,
+)
 @click.pass_context
 def gh(ctx):
     """
-    A group of commands for the gh plugin.
+    ⚡ efr gh ⚡
+
+    A set of tools for managing GitHub repositories within Every-Flavor-Robotics.
+
+    Available commands:
+      init      Initialize a GitHub repository with default EFR settings (README, LICENSE, .gitignore).
+      list      List repositories within the organization.
+      clone     Clone a repository from the organization.
+      togprot   Toggle repository remote between HTTPS and SSH.
+
+    Example usage:
+      efr gh init
+      efr gh list <pattern>
+      efr gh clone <repo>
+      efr gh togprot
+
     """
     if ctx.invoked_subcommand is None:
-        # Optionally, print help or decorative info here.
-        pass
+        click.secho("⚡ efr gh ⚡", fg="blue", bold=True)
+        click.echo()
+        click.secho(
+            "Convenience Tools for managing efr GitHub repositories.",
+            fg="cyan",
+        )
+        click.echo()
+        click.secho("Available Commands:", fg="cyan", bold=True)
+        click.secho(
+            "  init      Initialize a GitHub repository with default EFR settings",
+            fg="yellow",
+        )
+        click.secho(
+            "  list      List repositories in the organization, with fuzzy search",
+            fg="yellow",
+        )
+        click.secho("  clone     Clone a repository from the organization", fg="yellow")
+        click.secho(
+            "  togprot   Toggle repository remote between HTTPS and SSH", fg="yellow"
+        )
+        click.echo()
+        click.secho("Example Usage:", fg="cyan", bold=True)
+        click.echo("  efr gh init")
+        click.echo("  efr gh list <pattern>")
+        click.echo("  efr gh clone <repo>")
+        click.echo("  efr gh togprot")
+        click.echo()
+        # Let users know they can run `efr gh <command> --help` for more information
+        click.secho(
+            "For more information on a specific command, run `efr gh <command> --help`",
+            fg="yellow",
+        )
+        click.secho("Happy coding! 🚀", fg="magenta", bold=True)
+        ctx.exit(0)
 
 
-@gh.command()
+@gh.command(
+    help="Initialize a GitHub repository with default EFR settings, including a README, LICENSE, and .gitignore."
+)
 def init():
     """
     Initialize a github repo with the default efr settings.
@@ -166,7 +217,10 @@ def init():
         click.secho("Changes committed successfully.", fg="green")
 
 
-@gh.command(name="list")
+@gh.command(
+    name="list",
+    help="List repositories in the organization with an optional fuzzy search pattern for filtering.",
+)
 @click.argument("pattern", required=False)
 def list_repos(pattern):
     """
@@ -226,7 +280,7 @@ def list_repos(pattern):
         click.secho(divider, fg="yellow")
 
 
-@gh.command()
+@gh.command(help="Clone a repository from the organization using either HTTPS or SSH.")
 @click.argument("repo")
 # Option to use ssh to clone, default is https
 @click.option("--ssh", is_flag=True, help="Use SSH protocol to clone the repository.")
@@ -265,7 +319,8 @@ def clone(repo, ssh):
 
 
 @gh.command(
-    name="togprot", help="Toggle the current repo between https and ssh protocols."
+    name="togprot",
+    help="Toggle the current repository between HTTPS and SSH protocols. This changes the remote URL accordingly.",
 )
 def toggle_protocol():
     """
