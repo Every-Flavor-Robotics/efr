@@ -8,8 +8,10 @@ import os
 import subprocess
 import textwrap
 from difflib import get_close_matches
+from pathlib import Path
 
 import click
+import questionary
 import requests
 
 repo_list = None
@@ -78,6 +80,111 @@ def gh(ctx):
     if ctx.invoked_subcommand is None:
         # Optionally, print help or decorative info here.
         pass
+
+
+@gh.command()
+def init():
+    """
+    Initialize a github repo with the default efr settings.
+    """
+
+    # Get the repo root directory
+    try:
+        repo_root = Path(
+            subprocess.check_output(
+                ["git", "-C", "./", "rev-parse", "--show-toplevel"],
+                stderr=subprocess.STDOUT,
+            )
+            .strip()
+            .decode("utf-8")
+        )
+    except subprocess.CalledProcessError:
+        raise FileNotFoundError(
+            "No git repository found. Please run this command in the git repository you want to set up."
+        )
+
+    click.secho(f"Initializing repository in {repo_root}\n", fg="green")
+
+    click.secho("Step 1: Setting up the README", fg="cyan")
+
+    # Check if the README.md file exists
+    readme_path = repo_root / "README.md"
+    skip_readme = False
+
+    if readme_path.exists():
+        if not click.confirm("README.md already exists. Do you want to overwrite it?"):
+            click.secho("Skipping README setup.", fg="yellow")
+            skip_readme = True
+        else:
+            click.secho("Overwriting README.md...", fg="green")
+            readme_path.unlink()
+
+    if not skip_readme:
+        repo_name = click.prompt("Enter the repository name", default=repo_root.name)
+        repo_description = click.prompt("Enter a description for the repository")
+        emoji = click.prompt("Choose an emoji for the repository", default="🤖")
+
+        template_path = Path(__file__).parent / "templates" / "README.md.template"
+        template_content = template_path.read_text(encoding="utf-8")
+        readme_content = template_content.format(
+            name=repo_name, description=repo_description, emoji=emoji
+        )
+        readme_path.write_text(readme_content, encoding="utf-8")
+
+        click.secho("README.md created successfully.", fg="green")
+
+    click.secho("\nStep 2: Setting up the LICENSE", fg="cyan")
+    HARDWARE_LICENSE_PATH = "https://raw.githubusercontent.com/Every-Flavor-Robotics/licenses/refs/heads/main/hardware_license.md"
+    SOFTWARE_LICENSE_PATH = "https://raw.githubusercontent.com/Every-Flavor-Robotics/licenses/refs/heads/main/software_license.md"
+
+    project_type = questionary.select(
+        "Would you like to include the hardware or software license? Optionally, select 'none' to skip the license setup.",
+        choices=["hardware", "software", "none"],
+    ).ask()
+
+    if project_type != "none":
+        license_url = (
+            HARDWARE_LICENSE_PATH
+            if project_type == "hardware"
+            else SOFTWARE_LICENSE_PATH
+        )
+        license_path = repo_root / "LICENSE"
+        license_path.write_text(requests.get(license_url).text, encoding="utf-8")
+        click.secho("LICENSE created successfully.", fg="green")
+
+    click.secho("\nStep 3: Setting up the .gitignore", fg="cyan")
+    gitignore_templates = {
+        "Python": "https://www.toptal.com/developers/gitignore/api/python",
+        "PlatformIO": "https://www.toptal.com/developers/gitignore/api/platformio",
+        "Rust": "https://www.toptal.com/developers/gitignore/api/rust",
+    }
+
+    selected_templates = questionary.checkbox(
+        "Which tools are you using for this project? (Select none to skip setting up .gitignore)",
+        choices=list(gitignore_templates.keys()),
+    ).ask()
+
+    if selected_templates:
+        gitignore_content = "".join(
+            requests.get(gitignore_templates[t]).text for t in selected_templates
+        )
+        (repo_root / ".gitignore").write_text(gitignore_content, encoding="utf-8")
+        click.secho(".gitignore created successfully.", fg="green")
+
+    if click.confirm("Would you like to commit these changes?"):
+        if not skip_readme:
+            subprocess.run(["git", "add", "README.md"], cwd=repo_root)
+        if project_type != "none":
+            subprocess.run(["git", "add", "LICENSE"], cwd=repo_root)
+        if selected_templates:
+            subprocess.run(["git", "add", ".gitignore"], cwd=repo_root)
+
+        subprocess.run(
+            ["git", "commit", "-m", "Setup repository with efr defaults"], cwd=repo_root
+        )
+        click.secho("Changes committed successfully.", fg="green")
+
+    click.secho("\nSetup complete!", fg="green")
 
 
 @gh.command(name="list")
