@@ -10,5 +10,5 @@
     "gh": {
         "description": "Convenience tools for interacting with efr gh repos.",
         "install_url": "https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/refs/heads/main/efr-plugins/efr-gh/install.sh"
-    },
+    }
 }
