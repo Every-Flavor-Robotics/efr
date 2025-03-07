@@ -32,8 +32,14 @@ The project has three main objectives:
 ## Installation
 Below is a quick, one-line terminal command to clone this repository and install **efr**:
 
+MacOS/Linux:
 ```bash
 curl -s https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/main/install.sh | bash
+```
+
+Windows:
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/main/install.ps1 | iex"
 ```
 
 The install script does the following:
