@@ -1,15 +1,23 @@
 #!/usr/bin/env bash
 set -e
 
-EFRC_HOME="$HOME/.efr"
-VENV_DIR="$EFRC_HOME/venv"
+EFR_HOME="$HOME/.efr"
+VENV_DIR="$EFR_HOME/venv"
 
 # Ensure required directories exist
-mkdir -p "$EFRC_HOME"
+mkdir -p "$EFR_HOME"
+
+# Check if uv is installed, install if necessary
+if ! command -v uv &>/dev/null; then
+    echo "==> uv not found. Installing uv..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+else
+    echo "==> uv is already installed."
+fi
 
 # Clone efr repository into temporary directory
 echo "==> Cloning efr repository..."
-git clone https://github.com/Every-Flavor-Robotics/efr.git "$EFRC_HOME/efr-tmp"
+git clone https://github.com/Every-Flavor-Robotics/efr.git "$EFR_HOME/efr-tmp"
 
 # Set up the virtual environment with uv
 echo "==> Setting up virtual environment with uv..."
@@ -22,7 +30,7 @@ source "$VENV_DIR/bin/activate"
 uv pip install --upgrade pip
 
 # Install efr
-cd "$EFRC_HOME/efr-tmp"
+cd "$EFR_HOME/efr-tmp"
 echo "==> Installing efr package..."
 uv pip install .
 
@@ -44,13 +52,8 @@ chmod +x "$HOME/.local/bin/efr"
 # Cleanup
 echo "==> Cleaning up temporary files..."
 cd "$HOME"
-rm -rf "$EFRC_HOME/efr-tmp"
-rm -- "$0"
-
-# Provide instructions to add to PATH
-if ! grep -q "$VENV_DIR/bin" <<<"$PATH"; then
-    echo -e "\nIMPORTANT: To run efr from anywhere, add the following line to your shell profile (e.g., ~/.bashrc or ~/.zshrc):"
-    echo "export PATH=\"$VENV_DIR/bin:\$PATH\""
-fi
+rm -rf "$EFR_HOME/efr-tmp"
+# rm -- "$0"
 
 echo "==> efr installation complete!"
+echo "==> Run 'efr --help' to get started."
