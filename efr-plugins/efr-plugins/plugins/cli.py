@@ -72,7 +72,7 @@ def plugins(ctx):
 Example: To create a plugin named 'awesome', run:
     efr plugins init awesome
 
-This will create a new directory 'efr-awesome' in the current directory
+This will create a new directory 'efr-awesome' in the current directory.
 """,
 )
 @click.argument("name")
