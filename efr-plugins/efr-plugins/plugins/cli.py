@@ -8,7 +8,6 @@ from pathlib import Path
 import click
 import pkg_resources
 import requests
-
 from plugins import plugin_utils
 
 
@@ -145,7 +144,7 @@ def get_registry_info(plugin_dir: Path):
     click.secho(f'"{plugin_name}": {{', fg="cyan")
     click.secho(f'\t"description": "{plugin_description}",', fg="cyan")
     click.secho(f'\t"install_url": "{plugin_install_url}"', fg="cyan")
-    click.secho(f"}},", fg="cyan")
+    click.secho(f"}}", fg="cyan")
 
 
 @plugins.command(name="list")
