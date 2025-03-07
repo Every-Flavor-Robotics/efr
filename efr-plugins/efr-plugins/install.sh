@@ -5,7 +5,7 @@ PLUGIN_REPO="https://github.com/Every-Flavor-Robotics/efr.git"
 PLUGIN_SUBDIR="efr-plugins/efr-plugins"  # the subfolder with setup.py
 TMP_DIR="$(mktemp -d)"
 
-echo "==> Installing efr-foobar plugin from ${PLUGIN_REPO}/${PLUGIN_SUBDIR}"
+echo "==> Installing efr-plugins plugin from ${PLUGIN_REPO}/${PLUGIN_SUBDIR}"
 
 # 1) Create and enter a temporary directory
 cd "${TMP_DIR}"
