@@ -37,7 +37,7 @@ fi
 
 # Create global command wrapper
 echo "==> Registering global efr command..."
-echo "#!/usr/bin/env bash\nsource \"$VENV_DIR/bin/activate\"\nefr \"\$@\"" > "$HOME/.local/bin/efr"
+printf '#!/usr/bin/env bash\nsource "%s/bin/activate"\nefr "$@"\n' "$VENV_DIR" > "$HOME/.local/bin/efr"
 chmod +x "$HOME/.local/bin/efr"
 
 
