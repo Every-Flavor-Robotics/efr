@@ -53,10 +53,14 @@ The install script does the following:
 ### Install in editable mode:
 If you're developing or contributing to **efr**, you can install it in editable mode. This way, you can make changes to the code and see them reflected immediately.
 
+The efr tool uses `uv` to manage it's dependencies and virtual environemnts. If you don't have `uv` installed, you can follow the instructions [here](https://docs.astral.sh/uv/getting-started/installation/).
+
 ```bash
 git clone https://github.com/Every-Flavor-Robotics/efr.git
 cd efr
-pip install -e .
+uv venv ~/.efr/venv
+source ~/.efr/venv/bin/activate  # Use Activate.ps1 on Windows
+uv pip install --no-build-isolation --no-cache-dir -e .
 ```
 
 ---
