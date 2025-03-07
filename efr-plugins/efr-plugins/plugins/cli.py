@@ -4,6 +4,8 @@ import pathlib
 import subprocess
 import tempfile
 from pathlib import Path
+import platform
+import shutil
 
 import click
 import pkg_resources
@@ -224,12 +226,12 @@ def install_plugin(plugin_name, upgrade):
     Does nothing if already installed (unless --upgrade is specified).
     """
 
-    # 1) Get the plugin registry
-    registry = (
-        plugin_utils.retrieve_registry()
-    )  # e.g., returns dict from plugin_registry.json
+    # Determine OS type
+    is_windows = platform.system() == "Windows"
 
-    # Check if the plugin is in the registry
+    # Get the plugin registry
+    registry = plugin_utils.retrieve_registry()
+
     plugin_info = registry.get(plugin_name)
     if not plugin_info:
         click.secho(f"Plugin '{plugin_name}' not found in registry.", fg="red")
@@ -240,17 +242,19 @@ def install_plugin(plugin_name, upgrade):
         click.secho(f"Plugin '{plugin_name}' has no install_url in registry.", fg="red")
         return
 
-    # 2) Check if plugin is already installed
-    already_installed = plugin_utils.is_plugin_installed(plugin_name)
+    # Modify URL for Windows to use install.ps1
+    if is_windows:
+        install_url = install_url.replace("install.sh", "install.ps1")
 
-    if already_installed and not upgrade:
+    # Check if plugin is already installed
+    if plugin_utils.is_plugin_installed(plugin_name) and not upgrade:
         click.secho(
             f"'{plugin_name}' is already installed. Use --upgrade to force re-install.",
             fg="yellow",
         )
         return
 
-    # 3) Pull down the install script
+    # Download the install script
     try:
         click.secho(f"Fetching install script from {install_url} ...", fg="cyan")
         resp = requests.get(install_url)
@@ -259,24 +263,39 @@ def install_plugin(plugin_name, upgrade):
         click.secho(f"Error downloading install script: {e}", fg="red")
         return
 
-    # 4) Write the script to a temporary file
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".sh") as tmp_file:
-        script_path = tmp_file.name
+    # Determine script suffix
+    suffix = ".ps1" if is_windows else ".sh"
+
+    # Write to a temporary file
+    with tempfile.NamedTemporaryFile(
+        mode="w", delete=False, suffix=suffix, encoding="utf-8"
+    ) as tmp_file:
+        script_path = os.path.abspath(tmp_file.name)
         tmp_file.write(resp.text)
+
+    # Ensure script is executable (for Linux/Mac)
+    if not is_windows:
+        os.chmod(script_path, 0o755)
 
     click.secho(f"Running install script for '{plugin_name}' ...", fg="cyan")
     try:
-        # 5) Run the script
-        subprocess.run(["bash", script_path], check=True)
+        # Choose correct execution method
+        ps_command = "powershell" if shutil.which("powershell") else "pwsh"
+        command = (
+            [ps_command, "-File", script_path] if is_windows else ["bash", script_path]
+        )
+        subprocess.run(command, check=True)
         click.secho(
             f"'{plugin_name}' installed (or upgraded) successfully!", fg="green"
         )
     except subprocess.CalledProcessError as e:
         click.secho(f"Error running install script: {e}", fg="red")
     finally:
-        # 6) Cleanup: remove the temporary script
+        # Cleanup
         if os.path.exists(script_path):
             os.remove(script_path)
+
+    click.secho("==> Cleanup complete.", fg="cyan")
 
 
 @plugins.command(name="uninstall")
