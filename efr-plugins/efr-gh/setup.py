@@ -19,4 +19,7 @@ setup(
         ],
     },
     python_requires=">=3.7",
+    package_data={
+        "plugins": ["templates/*"],  # Ensure the templates directory is included
+    },
 )
