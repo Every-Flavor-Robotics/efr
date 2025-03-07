@@ -6,5 +6,9 @@
     "motorgo": {
         "description": "Common utilities for MotorGo development",
         "install_url": "https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/refs/heads/main/efr-plugins/efr-motorgo/install.sh"
-    }
+    },
+    "gh": {
+        "description": "Convenience tools for interacting with efr gh repos.",
+        "install_url": "https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/refs/heads/main/efr-plugins/efr-gh/install.sh"
+    },
 }
