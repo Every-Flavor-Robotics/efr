@@ -65,18 +65,6 @@ def _get_all_repos(org, token=None):
     return repo_list
 
 
-def complete_repos(ctx, args, incomplete):
-    """
-    Autocompletion function for repository names.
-
-    This function retrieves all repositories for the specified organization and
-    returns a list of repo names that start with the provided incomplete text.
-    """
-    repos = _get_all_repos("Every-Flavor-Robotics")
-    print(repos)
-    return [repo["name"] for repo in repos if repo["name"].startswith(incomplete)]
-
-
 @click.group(
     name="gh",
     invoke_without_command=True,
@@ -313,9 +301,6 @@ def clone(repo, ssh):
         # Split the error message into lines, indent each line, then join them back
         indented_err = "\n".join("    " + line for line in result.stderr.splitlines())
         click.secho(indented_err, fg="red")
-
-
-# Add a command that will quickly convert back and forth between ssh and https
 
 
 @gh.command(
