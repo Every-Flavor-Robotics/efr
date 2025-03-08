@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="efr",
-    version="0.1.0",
+    version="0.2.0",
     author="Swapnil Pande",
     author_email="support@everyflavorrobotics.com",
     description="A central CLI (efr) for common Every Flavor Robotics tools, using plugins via entry points",
