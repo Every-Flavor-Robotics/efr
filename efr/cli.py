@@ -1,6 +1,10 @@
 # efr/cli.py
 import click
 import pkg_resources
+import os
+from pathlib import Path
+import platform
+import subprocess
 
 
 def get_version():
@@ -72,6 +76,31 @@ def cli(ctx):
         # Extra help
         click.echo("Run 'efr --help' for more info.")
         ctx.exit(0)
+
+
+@cli.command()
+def upgrade():
+    """
+    Upgrade efr by running the latest install script.
+    """
+
+    bash_install_command = "curl -s https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/main/install.sh | bash"
+    powershell_install_command = [
+        "powershell",
+        "-ExecutionPolicy",
+        "ByPass",
+        "-NoProfile",
+        "-Command",
+        "Invoke-Expression (Invoke-RestMethod 'https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/main/install.ps1')",
+    ]
+
+    # Check platform
+    if platform.system() == "Windows":
+        # Run PowerShell explicitly
+        subprocess.run(powershell_install_command, check=True)
+    else:
+        # Run Bash command
+        subprocess.run(bash_install_command, shell=True, check=True)
 
 
 # Auto-discover plugins: each plugin is a Click command or group
