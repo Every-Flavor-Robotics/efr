@@ -60,8 +60,9 @@ if (Test-Path "$GLOBAL_COMMAND") {
 } else {
     Write-Host "==> Registering global efr command..."
     $scriptContent = @"
-# Run efr inside the virtual environment
-& `"$VENV_DIR\Scripts\python.exe`" -m efr @args
+& `"$VENV_DIR\Scripts\Activate.ps1`"
+efr `@args
+deactivate
 "@
     $scriptContent | Set-Content -Path $GLOBAL_COMMAND -Encoding UTF8
 }
