@@ -1,13 +1,15 @@
 # motorgo/cli.py
 import click
-import os
-import glob
 from pathlib import Path
 from motorgo import board_install
 import requests
 import tempfile
+import subprocess
 
-EXPERIMENTAL_BOARDS_REPO = "https://github.com/Every-Flavor-Robotics/motorgo-experimental-boards/"
+EXPERIMENTAL_BOARDS_REPO = (
+    "https://github.com/Every-Flavor-Robotics/motorgo-experimental-boards/"
+)
+
 
 def get_available_boards():
     PACKAGE_INDEX_PATH = "https://raw.githubusercontent.com/Every-Flavor-Robotics/motorgo-experimental-boards/refs/heads/main/efr_board_index.json"
@@ -39,10 +41,16 @@ def motorgo(ctx):
         click.secho("⚙️  efr motorgo  ⚙️", fg="green", bold=True)
         click.echo()
 
-        click.secho("The motorgo plugin provides tools for managing MotorGo hardware and software development.\n    ", fg="cyan")
+        click.secho(
+            "The motorgo plugin provides tools for managing MotorGo hardware and software development.\n    ",
+            fg="cyan",
+        )
 
         click.secho("List of software dev commands:", fg="cyan", bold=True)
-        click.secho("  boards               Tools for interacting with custom board definitions", fg="yellow")
+        click.secho(
+            "  boards               Tools for interacting with custom board definitions",
+            fg="yellow",
+        )
 
         click.echo()
         click.secho("Examples:", fg="cyan", bold=True)
@@ -50,7 +58,9 @@ def motorgo(ctx):
         click.echo("  efr motorgo boards list")
 
         click.echo()
-        click.echo("Use 'Invoke any subcommand with --help for more details on usage.\n")
+        click.echo(
+            "Use 'Invoke any subcommand with --help for more details on usage.\n"
+        )
         click.secho("Happy MotorGo hacking!", fg="magenta", bold=True)
 
         # Exit so Click doesn't complain about missing subcommands
@@ -65,17 +75,26 @@ def boards(ctx):
     """
     if ctx.invoked_subcommand is None:
         # Print your docstring/info in a colorful, emoji-decorated format
-        click.secho("Tools for working with experimental board definitions.\n", fg="green", bold=True)
-
-        click.secho("To check if a board is experimental or production, refer to the docs at: https://docs.motorgo.net/standalone_mode/board_setup\n", fg="cyan")
-
+        click.secho(
+            "Tools for working with experimental board definitions.\n",
+            fg="green",
+            bold=True,
+        )
 
         click.secho(
-            "Available Commands:", fg="cyan", bold=True
+            "To check if a board is experimental or production, refer to the docs at: https://docs.motorgo.net/standalone_mode/board_setup\n",
+            fg="cyan",
         )
-        click.secho("\tinstall\t\tInstall custom board definitions for PlatformIO", fg="yellow")
+
+        click.secho("Available Commands:", fg="cyan", bold=True)
+        click.secho(
+            "\tinstall\t\tInstall custom board definitions for PlatformIO", fg="yellow"
+        )
         click.secho("\tuninstall\tActually does nothing :)", fg="yellow")
-        click.secho("\tlist\t\tPrints the available boards, and their identifiers for installing", fg="yellow")
+        click.secho(
+            "\tlist\t\tPrints the available boards, and their identifiers for installing",
+            fg="yellow",
+        )
 
         print()
         click.secho("Available Boards:", fg="cyan", bold=True)
@@ -96,9 +115,11 @@ def boards(ctx):
         # Exit after showing this info so that Click doesn't complain about a missing subcommand
         ctx.exit(0)
 
+
 @boards.command(
     name="list",
-    help="Prints the available boards, and their identifiers for installing.")
+    help="Prints the available boards, and their identifiers for installing.",
+)
 def list():
     boards = get_available_boards()
     if boards:
@@ -107,13 +128,14 @@ def list():
     else:
         click.secho("Error fetching board list", fg="red")
 
+
 @boards.command(
     name="install",
     help="""
 Installs custom board definition for PlatformIO.
 
 If you don't know which versions of the platform and framework to install to, you can use the --all flag to install to all available platforms and frameworks. This is generally safe!
-"""
+""",
 )
 @click.option(
     "-a",
@@ -136,7 +158,7 @@ If you don't know which versions of the platform and framework to install to, yo
     "--custom-board-path",
     required=False,
     type=click.Path(exists=True),
-    help="Pass a custom path for the experimental boards repo, for developingment purposes.",
+    help="Pass a custom path for the experimental boards repo, for development purposes.",
 )
 def install(all, force, board_name, custom_board_path):
     """
@@ -154,8 +176,13 @@ def install(all, force, board_name, custom_board_path):
             break
 
     if not board_exists:
-        click.secho(f"Board '{board_name}' not found in the list of available boards.", fg="red")
-        click.secho("Run 'efr motorgo boards list' to see the list of available boards.", fg="yellow")
+        click.secho(
+            f"Board '{board_name}' not found in the list of available boards.", fg="red"
+        )
+        click.secho(
+            "Run 'efr motorgo boards list' to see the list of available boards.",
+            fg="yellow",
+        )
         return
 
     temp_dir = None
@@ -164,18 +191,24 @@ def install(all, force, board_name, custom_board_path):
         temp_dir = tempfile.TemporaryDirectory()
         custom_board_path = Path(temp_dir.name)
 
-        # Clone the repo
-        os.system(f"git clone {EXPERIMENTAL_BOARDS_REPO} {custom_board_path} > /dev/null 2>&1")
-
+        try:
+            subprocess.run(
+                ["git", "clone", EXPERIMENTAL_BOARDS_REPO, custom_board_path],
+                stdout=subprocess.DEVNULL,  # Suppress standard output
+                stderr=subprocess.DEVNULL,  # Suppress error output
+                check=True,  # Raise an exception if git fails
+            )
+        except subprocess.CalledProcessError:
+            print(
+                f"Error: Failed to clone repository {EXPERIMENTAL_BOARDS_REPO} into {custom_board_path}"
+            )
 
     board_install.install(all, force, board_name, custom_board_path)
 
-    if(temp_dir):
+    if temp_dir:
         temp_dir.cleanup()
 
 
-@boards.command(
-    name="uninstall",
-    help="")
+@boards.command(name="uninstall", help="")
 def uninstall():
     pass
