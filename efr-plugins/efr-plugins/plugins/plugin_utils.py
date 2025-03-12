@@ -279,7 +279,7 @@ def get_github_raw_url(plugin_dir: Path, file_path: Path) -> str:
     return raw_url
 
 
-def get_description_from_toml(toml_file: Path) -> str:
+def _get_description_from_toml(toml_file: Path) -> str:
     with open(toml_file, "rb") as f:  # Note: binary mode is required for tomllib
         data = tomllib.load(f)
 
