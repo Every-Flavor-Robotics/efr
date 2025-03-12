@@ -1,10 +1,12 @@
+import ast
 import os
-from pathlib import Path
-import click
 import subprocess
-import requests
-import pkg_resources
+from pathlib import Path
 
+import click
+import pkg_resources
+import requests
+import toml
 
 REGISTRY_URL = (
     "https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/"
@@ -38,7 +40,9 @@ def create_new_plugin_project(path: Path, name: str):
     plugin_dir = path / plugin_dir_name
 
     if plugin_dir.exists():
-        raise FileExistsError(f"Directory '{plugin_dir}' already exists. Aborting to avoid overwriting.")
+        raise FileExistsError(
+            f"Directory '{plugin_dir}' already exists. Aborting to avoid overwriting."
+        )
 
     # Create the top-level plugin directory
     plugin_dir.mkdir(parents=True, exist_ok=False)
@@ -71,7 +75,6 @@ def create_new_plugin_project(path: Path, name: str):
     return plugin_dir
 
 
-
 def _init_file(template_path: str, target_path: Path, format_strings: dict):
     """
     Initialize a file from the templates folder for the new efr plugin project.
@@ -92,7 +95,9 @@ def _init_file(template_path: str, target_path: Path, format_strings: dict):
         raise FileNotFoundError(f"Template file not found: {template_path}")
 
     if not target_path.exists():
-        raise FileExistsError(f"File '{target_path}' already exists. Aborting to avoid overwriting.")
+        raise FileExistsError(
+            f"File '{target_path}' already exists. Aborting to avoid overwriting."
+        )
 
     # 2) Read the template content
     template_content = template_path.read_text(encoding="utf-8")
@@ -100,13 +105,15 @@ def _init_file(template_path: str, target_path: Path, format_strings: dict):
     # 3) Format the string with the plugin name
     rendered_content = template_content.format(**format_strings)
 
-
     # 4) Write the final content out
     target_path.write_text(rendered_content, encoding="utf-8")
 
     name = format_strings.get("name", "unknown")
 
-    click.secho(f"\t{target_path.name} initialized for plugin '{name}' at: {target_path.resolve()}", fg="green")
+    click.secho(
+        f"\t{target_path.name} initialized for plugin '{name}' at: {target_path.resolve()}",
+        fg="green",
+    )
 
 
 def init_readme(plugin_dir: Path, name: str, description: str):
@@ -144,6 +151,7 @@ def init_setup_py(plugin_dir: Path, name: str, description: str):
 
     _init_file(template_path, target_path, {"name": name, "description": description})
 
+
 def init_cli_py(plugin_dir: Path, name: str, description: str):
     """
     Initialize a cli.py file for the new efr plugin project, from the template.
@@ -178,10 +186,14 @@ def _get_git_details(plugin_dir: Path) -> dict:
 
     # Check if the directory is inside a git repository
     try:
-        repo_root = subprocess.check_output(
-            ["git", "-C", str(plugin_dir), "rev-parse", "--show-toplevel"],
-            stderr=subprocess.STDOUT
-        ).strip().decode('utf-8')
+        repo_root = (
+            subprocess.check_output(
+                ["git", "-C", str(plugin_dir), "rev-parse", "--show-toplevel"],
+                stderr=subprocess.STDOUT,
+            )
+            .strip()
+            .decode("utf-8")
+        )
     except subprocess.CalledProcessError:
         raise FileNotFoundError(f"No git repository found for directory: {plugin_dir}")
 
@@ -190,10 +202,14 @@ def _get_git_details(plugin_dir: Path) -> dict:
 
     # Get the remote URL
     try:
-        remote_url = subprocess.check_output(
-            ["git", "-C", str(plugin_dir), "config", "--get", "remote.origin.url"],
-            stderr=subprocess.STDOUT
-        ).strip().decode('utf-8')
+        remote_url = (
+            subprocess.check_output(
+                ["git", "-C", str(plugin_dir), "config", "--get", "remote.origin.url"],
+                stderr=subprocess.STDOUT,
+            )
+            .strip()
+            .decode("utf-8")
+        )
     except subprocess.CalledProcessError:
         remote_url = None
 
@@ -201,10 +217,8 @@ def _get_git_details(plugin_dir: Path) -> dict:
     if remote_url and remote_url.startswith("git@"):
         remote_url = remote_url.replace(":", "/").replace("git@", "https://")
 
-    return {
-        "relative_path": relative_path,
-        "remote_url": remote_url
-    }
+    return {"relative_path": relative_path, "remote_url": remote_url}
+
 
 def init_install_sh(plugin_dir: Path, name: str):
     """
@@ -220,7 +234,15 @@ def init_install_sh(plugin_dir: Path, name: str):
 
     git_details = _get_git_details(plugin_dir)
 
-    _init_file(template_path, target_path, {"plugin_repo" : git_details["remote_url"], "plugin_dir" : git_details["relative_path"], "name": name})
+    _init_file(
+        template_path,
+        target_path,
+        {
+            "plugin_repo": git_details["remote_url"],
+            "plugin_dir": git_details["relative_path"],
+            "name": name,
+        },
+    )
 
 
 def get_github_raw_url(plugin_dir: Path, file_path: Path) -> str:
@@ -240,9 +262,13 @@ def get_github_raw_url(plugin_dir: Path, file_path: Path) -> str:
     if not git_details["remote_url"]:
         raise ValueError(f"Remote URL not found for plugin directory: {plugin_dir}")
 
-    print (git_details["remote_url"])
+    print(git_details["remote_url"])
     # Construct the raw URL
-    raw_url = git_details["remote_url"].replace(".git", "").replace("github.com", "raw.githubusercontent.com")
+    raw_url = (
+        git_details["remote_url"]
+        .replace(".git", "")
+        .replace("github.com", "raw.githubusercontent.com")
+    )
 
     # Append the branch name
     raw_url += "/refs/heads/main"
@@ -252,35 +278,50 @@ def get_github_raw_url(plugin_dir: Path, file_path: Path) -> str:
 
     return raw_url
 
-def get_description(plugin_dir: Path) -> str:
-    """
-    Get the description of the plugin from the setup.py file.
 
-    Args:
-        plugin_dir (Path): The path to the plugin directory.
-
-    Returns:
-        str: The description of the plugin.
-    """
-
-    setup_file = plugin_dir / "setup.py"
-
-    if not setup_file.exists():
-        raise FileNotFoundError(f"setup.py not found in plugin directory: {plugin_dir}")
-
-    # Read the setup.py file
-    setup_content = setup_file.read_text(encoding="utf-8")
-
-    # Find the description
-    description = ""
-    for line in setup_content.split("\n"):
-        if "description=" in line:
-            description = line.split("=", 1)[1].strip().strip("\"")
-            # Remove any trailing comma and quote
-            description = description.rstrip("\",")
-            break
-
+def _get_description_from_toml(toml_file: Path) -> str:
+    data = toml.load(toml_file)
+    # Description could be in different locations; check common ones.
+    description = data.get("project", {}).get("description")
+    if description is None:
+        description = data.get("tool", {}).get("poetry", {}).get("description")
+    if description is None:
+        raise ValueError("Description not found in TOML file")
     return description
+
+
+def _get_description_from_setup(setup_file: Path) -> str:
+    with open(setup_file, "r", encoding="utf-8") as f:
+        tree = ast.parse(f.read(), filename=str(setup_file))
+
+    description = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call) and getattr(node.func, "id", None) == "setup":
+            for keyword in node.keywords:
+                if keyword.arg == "description":
+                    # Only works if the description is a literal string.
+                    if isinstance(keyword.value, ast.Str):
+                        description = keyword.value.s
+                    break
+        if description:
+            break
+    if description is None:
+        raise ValueError("Description not found in setup.py")
+    return description
+
+
+def get_description(plugin_dir: Path) -> str:
+    setup_file = plugin_dir / "setup.py"
+    toml_file = plugin_dir / "pyproject.toml"
+
+    if toml_file.exists():
+        return _get_description_from_toml(toml_file)
+    elif setup_file.exists():
+        return _get_description_from_setup(setup_file)
+    else:
+        raise FileNotFoundError(
+            f"Neither pyproject.toml nor setup.py found in plugin directory: {plugin_dir}"
+        )
 
 
 def retrieve_registry():
@@ -300,6 +341,8 @@ def is_plugin_installed(plugin_name: str) -> bool:
     """
     Checks if the plugin (assuming PyPI package named 'efr-{plugin_name}') is installed.
     """
-    installed_packages = {dist.project_name.lower() for dist in pkg_resources.working_set}
+    installed_packages = {
+        dist.project_name.lower() for dist in pkg_resources.working_set
+    }
     candidate_name = f"efr-{plugin_name}".lower()
     return candidate_name in installed_packages
