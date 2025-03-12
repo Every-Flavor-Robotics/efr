@@ -138,7 +138,7 @@ def get_registry_info(plugin_dir: Path):
         click.secho(f"Error: Directory '{plugin_dir}' does not exist.", fg="red")
         return
 
-    plugin_name = plugin_utils.get_plugin_name(plugin_dir)
+    plugin_name = plugin_utils.get_name(plugin_dir)
     plugin_name = plugin_dir.name.replace("efr-", "")
     plugin_description = plugin_utils.get_description(plugin_dir)
     plugin_install_url = plugin_utils.get_github_raw_url(plugin_dir, Path("install.sh"))
