@@ -279,37 +279,36 @@ def get_github_raw_url(plugin_dir: Path, file_path: Path) -> str:
     return raw_url
 
 
-def _get_description_from_toml(toml_file: Path) -> str:
-    with open(toml_file, "rb") as f:  # Note: binary mode is required for tomllib
+def _get_field_from_toml(toml_file: Path, field: str) -> str:
+    with open(toml_file, "rb") as f:  # tomllib requires binary mode
         data = tomllib.load(f)
+    # Try the common locations first
+    value = data.get("project", {}).get(field)
+    if value is None:
+        # For projects using Poetry, the field might be under tool.poetry
+        value = data.get("tool", {}).get("poetry", {}).get(field)
+    if value is None:
+        raise ValueError(f"{field.capitalize()} not found in TOML file")
+    return value
 
-    # Attempt to retrieve the description from common locations
-    description = data.get("project", {}).get("description")
-    if description is None:
-        description = data.get("tool", {}).get("poetry", {}).get("description")
-    if description is None:
-        raise ValueError("Description not found in TOML file")
-    return description
 
-
-def _get_description_from_setup(setup_file: Path) -> str:
+def _get_field_from_setup(setup_file: Path, field: str) -> str:
     with open(setup_file, "r", encoding="utf-8") as f:
         tree = ast.parse(f.read(), filename=str(setup_file))
-
-    description = None
+    value = None
     for node in ast.walk(tree):
         if isinstance(node, ast.Call) and getattr(node.func, "id", None) == "setup":
             for keyword in node.keywords:
-                if keyword.arg == "description":
-                    # Only works if the description is a literal string.
+                if keyword.arg == field:
+                    # Only works if the field is provided as a literal string.
                     if isinstance(keyword.value, ast.Str):
-                        description = keyword.value.s
+                        value = keyword.value.s
                     break
-        if description:
+        if value:
             break
-    if description is None:
-        raise ValueError("Description not found in setup.py")
-    return description
+    if value is None:
+        raise ValueError(f"{field.capitalize()} not found in setup.py")
+    return value
 
 
 def get_description(plugin_dir: Path) -> str:
@@ -317,9 +316,23 @@ def get_description(plugin_dir: Path) -> str:
     toml_file = plugin_dir / "pyproject.toml"
 
     if toml_file.exists():
-        return _get_description_from_toml(toml_file)
+        return _get_field_from_toml(toml_file, "description")
     elif setup_file.exists():
-        return _get_description_from_setup(setup_file)
+        return _get_field_from_setup(setup_file, "description")
+    else:
+        raise FileNotFoundError(
+            f"Neither pyproject.toml nor setup.py found in plugin directory: {plugin_dir}"
+        )
+
+
+def get_name(plugin_dir: Path) -> str:
+    setup_file = plugin_dir / "setup.py"
+    toml_file = plugin_dir / "pyproject.toml"
+
+    if toml_file.exists():
+        return _get_field_from_toml(toml_file, "name")
+    elif setup_file.exists():
+        return _get_field_from_setup(setup_file, "name")
     else:
         raise FileNotFoundError(
             f"Neither pyproject.toml nor setup.py found in plugin directory: {plugin_dir}"

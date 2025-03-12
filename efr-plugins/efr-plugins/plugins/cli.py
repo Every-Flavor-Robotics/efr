@@ -1,15 +1,16 @@
 import glob
 import os
 import pathlib
+import platform
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
-import platform
-import shutil
 
 import click
 import pkg_resources
 import requests
+
 from plugins import plugin_utils
 
 
@@ -130,16 +131,17 @@ def init_new_plugin(name: str, path: Path):
 @click.argument("plugin_dir", type=click.Path(exists=True))
 def get_registry_info(plugin_dir: Path):
     plugin_dir = Path(plugin_dir)
+    # Expand to full path to make sure we get the name right
+    plugin_dir = plugin_dir.resolve()
 
     if not plugin_dir.exists():
         click.secho(f"Error: Directory '{plugin_dir}' does not exist.", fg="red")
         return
 
+    plugin_name = plugin_utils.get_plugin_name(plugin_dir)
     plugin_name = plugin_dir.name.replace("efr-", "")
     plugin_description = plugin_utils.get_description(plugin_dir)
     plugin_install_url = plugin_utils.get_github_raw_url(plugin_dir, Path("install.sh"))
-
-    print(plugin_description)
 
     # Provide JSON output for the registry
     click.secho(f"Add the following to the registry in 'efr-plugins':", fg="green")
