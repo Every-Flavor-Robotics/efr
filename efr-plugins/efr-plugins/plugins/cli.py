@@ -139,7 +139,7 @@ def get_registry_info(plugin_dir: Path):
         return
 
     plugin_name = plugin_utils.get_name(plugin_dir)
-    plugin_name = plugin_dir.name.replace("efr-", "")
+    plugin_name = plugin_name.replace("efr-", "")
     plugin_description = plugin_utils.get_description(plugin_dir)
     plugin_install_url = plugin_utils.get_github_raw_url(plugin_dir, Path("install.sh"))
 
