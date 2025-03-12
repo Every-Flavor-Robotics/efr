@@ -6,7 +6,7 @@ from pathlib import Path
 import click
 import pkg_resources
 import requests
-import toml
+import tomllib
 
 REGISTRY_URL = (
     "https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/"
@@ -279,9 +279,11 @@ def get_github_raw_url(plugin_dir: Path, file_path: Path) -> str:
     return raw_url
 
 
-def _get_description_from_toml(toml_file: Path) -> str:
-    data = toml.load(toml_file)
-    # Description could be in different locations; check common ones.
+def get_description_from_toml(toml_file: Path) -> str:
+    with open(toml_file, "rb") as f:  # Note: binary mode is required for tomllib
+        data = tomllib.load(f)
+
+    # Attempt to retrieve the description from common locations
     description = data.get("project", {}).get("description")
     if description is None:
         description = data.get("tool", {}).get("poetry", {}).get("description")
