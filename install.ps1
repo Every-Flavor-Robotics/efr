@@ -20,7 +20,7 @@ if (Test-Path "$VENV_DIR") {
     Write-Host "==> Virtual environment already exists. Skipping creation."
 } else {
     Write-Host "==> Setting up virtual environment with uv..."
-    uv venv "$VENV_DIR"
+    uv venv "$VENV_DIR" --python 3.12
 }
 
 # Activate virtual environment
