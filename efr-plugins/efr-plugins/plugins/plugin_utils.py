@@ -94,7 +94,7 @@ def _init_file(template_path: str, target_path: Path, format_strings: dict):
     if not template_path.exists():
         raise FileNotFoundError(f"Template file not found: {template_path}")
 
-    if not target_path.exists():
+    if target_path.exists():
         raise FileExistsError(
             f"File '{target_path}' already exists. Aborting to avoid overwriting."
         )
@@ -262,7 +262,6 @@ def get_github_raw_url(plugin_dir: Path, file_path: Path) -> str:
     if not git_details["remote_url"]:
         raise ValueError(f"Remote URL not found for plugin directory: {plugin_dir}")
 
-    print(git_details["remote_url"])
     # Construct the raw URL
     raw_url = (
         git_details["remote_url"]
