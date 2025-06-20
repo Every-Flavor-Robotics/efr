@@ -141,13 +141,14 @@ def get_registry_info(plugin_dir: Path):
     plugin_name = plugin_utils.get_name(plugin_dir)
     plugin_name = plugin_name.replace("efr-", "")
     plugin_description = plugin_utils.get_description(plugin_dir)
-    plugin_install_url = plugin_utils.get_github_raw_url(plugin_dir, Path("install.sh"))
+    base_url = plugin_utils.get_github_raw_url(plugin_dir, Path("install.sh"))
+    plugin_install_url = base_url.rsplit(".", 1)[0]
 
     # Provide JSON output for the registry
     click.secho(f"Add the following to the registry in 'efr-plugins':", fg="green")
     click.secho(f'"{plugin_name}": {{', fg="cyan")
     click.secho(f'\t"description": "{plugin_description}",', fg="cyan")
-    click.secho(f'\t"install_url": "{plugin_install_url}"', fg="cyan")
+    click.secho(f'\t"install_script_base": "{plugin_install_url}"', fg="cyan")
     click.secho(f"}}", fg="cyan")
 
 
@@ -164,11 +165,11 @@ def list_plugins():
     # {
     #    "plugin_a": {
     #       "description": "...",
-    #       "install_url": "..."
+    #       "install_script_base": "..."
     #    },
     #    "plugin_b": {
     #       "description": "...",
-    #       "install_url": "..."
+    #       "install_script_base": "..."
     #    }
     # }
     #
@@ -206,7 +207,7 @@ def list_plugins():
     if uninstalled_list:
         for name, info in uninstalled_list:
             desc = info.get("description", "No description")
-            url = info.get("install_url", "No install URL provided")
+            _ = info.get("install_script_base") or info.get("install_url")
             click.echo(f"• {name} : {desc}")
     else:
         click.echo("(No uninstalled plugins found)")
@@ -239,14 +240,20 @@ def install_plugin(plugin_name, upgrade):
         click.secho(f"Plugin '{plugin_name}' not found in registry.", fg="red")
         return
 
+    install_base = plugin_info.get("install_script_base")
     install_url = plugin_info.get("install_url")
-    if not install_url:
-        click.secho(f"Plugin '{plugin_name}' has no install_url in registry.", fg="red")
-        return
 
-    # Modify URL for Windows to use install.ps1
-    if is_windows:
-        install_url = install_url.replace("install.sh", "install.ps1")
+    if install_base:
+        install_url = install_base + (".ps1" if is_windows else ".sh")
+    elif install_url:
+        if is_windows:
+            install_url = install_url.replace("install.sh", "install.ps1")
+    else:
+        click.secho(
+            f"Plugin '{plugin_name}' has no install_script_base or install_url in registry.",
+            fg="red",
+        )
+        return
 
     # Check if plugin is already installed
     if plugin_utils.is_plugin_installed(plugin_name) and not upgrade:
