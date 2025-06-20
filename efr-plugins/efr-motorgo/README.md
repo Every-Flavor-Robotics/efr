@@ -8,13 +8,13 @@
 
 - [MotorGo Plugin for efr](#motorgo-plugin-for-efr)
   - [Table of Contents](#table-of-contents)
-  - [Avaiable Commands](#avaiable-commands)
+  - [Available Commands](#avaiable-commands)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
 
 ---
 
-## Avaiable Commands
+## Available Commands
 
 - **boards**: Utilities for handling custom MotorGo board definitions.
   - **install**: Installs a custom board definition and variant for PlatformIO.
