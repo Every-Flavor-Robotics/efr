@@ -4,8 +4,8 @@ import subprocess
 from pathlib import Path
 
 import click
-import pkg_resources
 import requests
+from importlib.metadata import distributions
 import tomllib
 
 REGISTRY_URL = (
@@ -355,8 +355,6 @@ def is_plugin_installed(plugin_name: str) -> bool:
     """
     Checks if the plugin (assuming PyPI package named 'efr-{plugin_name}') is installed.
     """
-    installed_packages = {
-        dist.project_name.lower() for dist in pkg_resources.working_set
-    }
+    installed_packages = {dist.metadata["Name"].lower() for dist in distributions()}
     candidate_name = f"efr-{plugin_name}".lower()
     return candidate_name in installed_packages

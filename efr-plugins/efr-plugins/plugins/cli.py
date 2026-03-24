@@ -8,8 +8,8 @@ import tempfile
 from pathlib import Path
 
 import click
-import pkg_resources
 import requests
+from importlib.metadata import distributions
 
 from plugins import plugin_utils
 
@@ -176,9 +176,7 @@ def list_plugins():
     # so adapt to your real JSON structure.
 
     # Gather installed package names (lowercased) for easy membership checking
-    installed_packages = {
-        dist.project_name.lower() for dist in pkg_resources.working_set
-    }
+    installed_packages = {dist.metadata["Name"].lower() for dist in distributions()}
 
     installed_list = []
     uninstalled_list = []
