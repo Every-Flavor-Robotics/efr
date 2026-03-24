@@ -31,8 +31,8 @@ git pull origin main --depth=1
 cd "${PLUGIN_SUBDIR}"
 
 # 8) Install the plugin (non-editable mode, upgrade pip if desired)
-pip install --upgrade pip
-pip install .
+python3 -m pip install --upgrade pip
+python3 -m pip install .
 
 echo "==> Plugin efr-motorgo successfully installed!"
 
