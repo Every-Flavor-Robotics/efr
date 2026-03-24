@@ -1,11 +1,10 @@
 # efr/cli.py
 import click
-import pkg_resources
 import os
 from pathlib import Path
 import platform
 import subprocess
-
+from importlib.metadata import version, entry_points, PackageNotFoundError
 
 def get_version():
     """
@@ -13,9 +12,8 @@ def get_version():
     Fallback to "unknown" if not found.
     """
     try:
-        dist = pkg_resources.get_distribution("efr")
-        return dist.version
-    except pkg_resources.DistributionNotFound:
+        return version("efr")
+    except PackageNotFoundError:
         return "unknown"
 
 
@@ -46,7 +44,7 @@ def cli(ctx):
 
         # Installed plugins
         click.secho("Installed plugins:", fg="bright_magenta", bold=True)
-        plugin_list = list(pkg_resources.iter_entry_points("efr.plugins"))
+        plugin_list = list(entry_points(group="efr.plugins"))
         if plugin_list:
             for entry_point in plugin_list:
                 click.echo(f"  • {entry_point.name}")
@@ -104,6 +102,6 @@ def upgrade():
 
 
 # Auto-discover plugins: each plugin is a Click command or group
-for entry_point in pkg_resources.iter_entry_points("efr.plugins"):
+for entry_point in entry_points(group="efr.plugins"):
     plugin = entry_point.load()
     cli.add_command(plugin)
