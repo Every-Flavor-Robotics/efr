@@ -24,7 +24,7 @@ def cli(ctx):
     efr - A central CLI for bundling modules from different projects.
     """
     if not ctx.invoked_subcommand:
-        version = get_version()
+        efr_version = get_version()
 
         # Title line
         click.secho(
@@ -34,7 +34,7 @@ def cli(ctx):
         )
 
         # Version line
-        click.secho(f"Version: {version}\n", fg="green", bold=True)
+        click.secho(f"Version: {efr_version}\n", fg="green", bold=True)
 
         # Description
         click.secho(
