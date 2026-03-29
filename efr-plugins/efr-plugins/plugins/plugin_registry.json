@@ -1,18 +1,18 @@
 {
     "plugins": {
         "description": "Utilites for managing plugins for `efr` CLI",
-        "install_url": "https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/refs/heads/main/efr-plugins/efr-plugins/install.sh"
+        "install_script_base": "https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/refs/heads/main/efr-plugins/efr-plugins/install"
     },
     "motorgo": {
         "description": "Common utilities for MotorGo development",
-        "install_url": "https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/refs/heads/main/efr-plugins/efr-motorgo/install.sh"
+        "install_script_base": "https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/refs/heads/main/efr-plugins/efr-motorgo/install"
     },
     "gh": {
         "description": "Convenience tools for interacting with efr gh repos.",
-        "install_url": "https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/refs/heads/main/efr-plugins/efr-gh/install.sh"
+        "install_script_base": "https://raw.githubusercontent.com/Every-Flavor-Robotics/efr/refs/heads/main/efr-plugins/efr-gh/install"
     },
     "joybridge": {
         "description": "Use an ESP32-S3 as an ESP-NOW transponder to relay joystick input.",
-        "install_url": "https://raw.githubusercontent.com/Every-Flavor-Robotics/esp-now-joybridge/refs/heads/main/joybridge_host/install.sh"
+        "install_script_base": "https://raw.githubusercontent.com/Every-Flavor-Robotics/esp-now-joybridge/refs/heads/main/joybridge_host/install"
     }
 }
